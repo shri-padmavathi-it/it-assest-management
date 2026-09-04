@@ -1,0 +1,154 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id          String   @id @default(uuid())
+  employeeId  String   @unique
+  name        String
+  email       String   @unique
+  department  String?
+  designation String?
+  location    String?
+  status      String   @default("Active") // Active, Inactive
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  computers           Computer[]           @relation("CurrentEmployee")
+  computerHistoryPrev ComputerHistory[]    @relation("PrevEmployeeHistory")
+  computerHistoryNew  ComputerHistory[]    @relation("NewEmployeeHistory")
+  assignments         SoftwareAssignment[]
+  softwareHistoryFrom SoftwareHistory[]    @relation("FromEmployeeHistory")
+  softwareHistoryTo   SoftwareHistory[]    @relation("ToEmployeeHistory")
+}
+
+model Computer {
+  id                String   @id @default(uuid())
+  assetTag          String   @unique
+  computerName      String
+  serialNumber      String?
+  brand             String?
+  model             String?
+  processor         String?
+  graphicsCard      String?
+  ram               String?
+  storage           String?
+  operatingSystem   String?
+  office365Login    String?
+  macId             String?
+  deviceId          String?
+  oldUsers          String?
+  antivirusInstalled Boolean @default(false)
+  purchaseDate      DateTime?
+  warrantyExpiry    DateTime?
+  location          String?
+  department        String?
+  status            String   @default("Available") // Available, In Use, Not In Use, Under Repair, Retired, In Stock
+  notes             String?  @db.Text
+  complaints        String?  @db.Text
+  currentEmployeeId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  currentEmployee     Employee?            @relation("CurrentEmployee", fields: [currentEmployeeId], references: [id])
+  softwareAssignments SoftwareAssignment[]
+  history             ComputerHistory[]    @relation("ComputerHistory")
+  softwareHistoryFrom SoftwareHistory[]    @relation("FromComputerHistory")
+  softwareHistoryTo   SoftwareHistory[]    @relation("ToComputerHistory")
+}
+
+model SoftwareAsset {
+  id             String   @id @default(uuid())
+  name           String
+  vendor         String?
+  category       String?  // MS Office, CAD, Finance, etc.
+  licenseType    String   // Network License, Per Device License
+  credentials    String?  // License Key or Username
+  password       String?
+  status         String   @default("Available")
+  expiryDate     DateTime?
+  neverExpires         Boolean  @default(false)
+  description          String?  @db.Text
+  allowedInstallations Int      @default(1)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  assignments    SoftwareAssignment[]
+  history        SoftwareHistory[]
+}
+
+model SoftwareAssignment {
+  id              String   @id @default(uuid())
+  softwareAssetId String
+  computerId      String?
+  employeeId      String?
+  installedDate   DateTime @default(now())
+  removedDate     DateTime?
+  status          String   @default("Active") // Active, Removed
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  softwareAsset SoftwareAsset @relation(fields: [softwareAssetId], references: [id], onDelete: Cascade)
+  computer      Computer?     @relation(fields: [computerId], references: [id])
+  employee      Employee?     @relation(fields: [employeeId], references: [id])
+}
+
+model ComputerHistory {
+  id                 String   @id @default(uuid())
+  computerId         String
+  previousEmployeeId String?
+  newEmployeeId      String?
+  action             String
+  performedBy        String?
+  createdAt          DateTime @default(now())
+
+  computer         Computer  @relation("ComputerHistory", fields: [computerId], references: [id])
+  previousEmployee Employee? @relation("PrevEmployeeHistory", fields: [previousEmployeeId], references: [id])
+  newEmployee      Employee? @relation("NewEmployeeHistory", fields: [newEmployeeId], references: [id])
+}
+
+model SoftwareHistory {
+  id              String   @id @default(uuid())
+  softwareAssetId String
+  fromComputerId  String?
+  toComputerId    String?
+  fromEmployeeId  String?
+  toEmployeeId    String?
+  action          String
+  performedBy     String?
+  createdAt       DateTime @default(now())
+
+  softwareAsset SoftwareAsset @relation(fields: [softwareAssetId], references: [id], onDelete: Cascade)
+  fromComputer  Computer?     @relation("FromComputerHistory", fields: [fromComputerId], references: [id])
+  toComputer    Computer?     @relation("ToComputerHistory", fields: [toComputerId], references: [id])
+  fromEmployee  Employee?     @relation("FromEmployeeHistory", fields: [fromEmployeeId], references: [id])
+  toEmployee    Employee?     @relation("ToEmployeeHistory", fields: [toEmployeeId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  oldValue   String?  @db.Text
+  newValue   String?  @db.Text
+  createdAt  DateTime @default(now())
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("Admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
