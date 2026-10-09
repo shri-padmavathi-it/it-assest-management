@@ -52,7 +52,7 @@ export async function addComputer(formData: FormData) {
   const brand = formData.get('brand') as string
   const model = formData.get('model') as string
   const status = formData.get('status') as string
-  
+
   const department = formData.get('department') as string
   const processor = formData.get('processor') as string
   const graphicsCard = formData.get('graphicsCard') as string
@@ -91,7 +91,7 @@ export async function addComputer(formData: FormData) {
       currentEmployeeId
     }
   })
-  
+
   revalidatePath('/computers')
   redirect('/computers')
 }
@@ -101,7 +101,7 @@ export async function addSoftwareAsset(formData: FormData) {
   const vendor = formData.get('vendor') as string
   const category = formData.get('category') as string
   const licenseType = formData.get('licenseType') as string
-  
+
   const credentials = formData.get('credentials') as string
   const password = formData.get('password') as string
   const expiryDate = formData.get('expiryDate') as string
@@ -122,7 +122,7 @@ export async function addSoftwareAsset(formData: FormData) {
       status: 'Available'
     }
   })
-  
+
   revalidatePath('/software-licenses')
   redirect('/software-licenses')
 }
@@ -141,7 +141,7 @@ export async function addEmployee(formData: FormData) {
       department
     }
   })
-  
+
   revalidatePath('/employees')
   redirect('/employees')
 }
@@ -158,20 +158,20 @@ export async function importComputersFromCSV(formData: FormData) {
 
   const splitRegex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
   const headers = lines[0].split(splitRegex).map(h => h.trim().replace(/^"|"$/g, ''));
-  
+
   let successCount = 0;
 
   for (let i = 1; i < lines.length; i++) {
     try {
       const currentline = lines[i].split(splitRegex).map(val => val.trim().replace(/^"|"$/g, ''));
-      
+
       const assetTag = currentline[1];
       if (!assetTag || assetTag === 'System No' || assetTag.trim() === '') continue;
 
       const model = currentline[4];
       const computerNameRaw = currentline[5] ? currentline[5] : (model || 'Unknown PC');
       const computerName = computerNameRaw.substring(0, 100);
-      
+
       const processor = currentline[6];
       const graphicsCard = currentline[7];
       const ram = currentline[8];
@@ -185,7 +185,7 @@ export async function importComputersFromCSV(formData: FormData) {
       const complaints = currentline[17];
       const notes = currentline[18] || '';
       const department = currentline[2];
-      
+
       const status = "Available";
       const employeeId = null;
 
@@ -233,76 +233,76 @@ export async function importComputersFromCSV(formData: FormData) {
           currentEmployeeId: employeeId
         }
       });
-      
+
       successCount++;
     } catch (err: any) {
       console.error(`Error importing row:`, err.message);
     }
   }
-  
+
   revalidatePath('/computers');
   return { success: true, count: successCount };
 }
 
 export async function syncEmployeesFromEMS() {
   try {
-    const response = await fetch('http://192.168.1.19:8081/auth/users?page=0&size=500&isActive=true', {
+    const response = await fetch('https://api.shripadmavathi.com/auth/users?page=0&size=500&isActive=true', {
       cache: 'no-store'
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch from EMS API (Status: ${response.status})`);
     }
-    
+
     const data = await response.json();
-    
+
     // Attempt to locate the user array in the response structure
     let users: any[] = [];
     if (Array.isArray(data)) {
-        users = data;
+      users = data;
     } else if (data.content && Array.isArray(data.content)) {
-        users = data.content;
+      users = data.content;
     } else if (data.users && Array.isArray(data.users)) {
-        users = data.users;
+      users = data.users;
     } else if (data.data && Array.isArray(data.data)) {
-        users = data.data;
+      users = data.data;
     } else {
-        // Fallback: search for the first array in the top-level keys
-        const arrayKey = Object.keys(data).find(key => Array.isArray(data[key]));
-        if (arrayKey) {
-            users = data[arrayKey];
-        } else {
-            throw new Error("Could not find an array of users in the EMS response.");
-        }
+      // Fallback: search for the first array in the top-level keys
+      const arrayKey = Object.keys(data).find(key => Array.isArray(data[key]));
+      if (arrayKey) {
+        users = data[arrayKey];
+      } else {
+        throw new Error("Could not find an array of users in the EMS response.");
+      }
     }
-    
+
     let count = 0;
     for (const user of users) {
-       if (!user.employeeId) continue;
-       
-       await prisma.employee.upsert({
-         where: { employeeId: user.employeeId.toString() },
-         update: {
-           name: user.name || "Unknown",
-           email: user.email || `${user.employeeId}@example.com`,
-           department: user.department || null,
-           designation: user.Designation || null,
-           location: user.location || null,
-           status: user.isActive !== false ? "Active" : "Inactive"
-         },
-         create: {
-           employeeId: user.employeeId.toString(),
-           name: user.name || "Unknown",
-           email: user.email || `${user.employeeId}@example.com`,
-           department: user.department || null,
-           designation: user.Designation || null,
-           location: user.location || null,
-           status: user.isActive !== false ? "Active" : "Inactive"
-         }
-       });
-       count++;
+      if (!user.employeeId) continue;
+
+      await prisma.employee.upsert({
+        where: { employeeId: user.employeeId.toString() },
+        update: {
+          name: user.name || "Unknown",
+          email: user.email || `${user.employeeId}@example.com`,
+          department: user.department || null,
+          designation: user.Designation || null,
+          location: user.location || null,
+          status: user.isActive !== false ? "Active" : "Inactive"
+        },
+        create: {
+          employeeId: user.employeeId.toString(),
+          name: user.name || "Unknown",
+          email: user.email || `${user.employeeId}@example.com`,
+          department: user.department || null,
+          designation: user.Designation || null,
+          location: user.location || null,
+          status: user.isActive !== false ? "Active" : "Inactive"
+        }
+      });
+      count++;
     }
-    
+
     revalidatePath('/employees');
     return { success: true, count };
   } catch (err: any) {
@@ -321,7 +321,7 @@ export async function editEmployee(formData: FormData) {
     where: { id },
     data: { name, email, department }
   })
-  
+
   revalidatePath('/employees')
 }
 
@@ -332,7 +332,7 @@ export async function editComputer(formData: FormData) {
   const brand = formData.get('brand') as string
   const model = formData.get('model') as string
   const status = formData.get('status') as string
-  
+
   const department = formData.get('department') as string
   const processor = formData.get('processor') as string
   const graphicsCard = formData.get('graphicsCard') as string
@@ -349,7 +349,7 @@ export async function editComputer(formData: FormData) {
   const oldUsers = formData.get('oldUsers') as string || null
 
   const existingComputer = await prisma.computer.findUnique({ where: { id } });
-  
+
   await prisma.computer.update({
     where: { id },
     data: {
@@ -387,7 +387,7 @@ export async function editComputer(formData: FormData) {
       }
     });
   }
-  
+
   revalidatePath('/computers')
   revalidatePath(`/computers/${id}`)
   redirect(`/computers/${id}`)
@@ -417,7 +417,7 @@ export async function assignComputer(computerId: string, newEmployeeId: string |
         performedBy: 'System'
       }
     });
-    
+
     // Unassign software from old user and assign to new user (optional, depending on logic, but let's keep it simple for now)
   }
 
@@ -428,7 +428,7 @@ export async function assignComputer(computerId: string, newEmployeeId: string |
 export async function searchEmployees(query: string, page: number = 1) {
   const pageSize = 5;
   const skip = (page - 1) * pageSize;
-  
+
   const where = query ? {
     OR: [
       { name: { contains: query } },

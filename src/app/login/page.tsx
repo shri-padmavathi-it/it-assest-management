@@ -7,7 +7,7 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>
 }) {
   const resolvedParams = await searchParams;
-  
+
   return (
     <div className="flex h-screen w-full items-center justify-center transition-colors duration-500 absolute inset-0 z-50 bg-mesh bg-background">
       <div className="glass-card w-full max-w-md p-8 flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500">

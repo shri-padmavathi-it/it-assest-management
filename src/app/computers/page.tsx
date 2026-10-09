@@ -41,7 +41,7 @@ export default async function ComputersPage({ searchParams }: { searchParams: Pr
           </Link>
         </div>
       </div>
-      
+
       <PaginationContainer totalPages={totalPages} currentPage={page} basePath="/computers">
         <table className="w-full text-sm text-left">
           <thead className="text-xs uppercase bg-muted/50 border-b">

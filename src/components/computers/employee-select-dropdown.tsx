@@ -35,6 +35,10 @@ export function EmployeeSelectDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+  
+  const mouseStartX = useRef<number | null>(null);
+  const mouseEndX = useRef<number | null>(null);
+  const isDragging = useRef(false);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -74,6 +78,12 @@ export function EmployeeSelectDropdown({
   };
 
   const selectEmployee = (id: string | null, name: string | null) => {
+    // Prevent selection if the user was dragging
+    if (mouseStartX.current !== null && mouseEndX.current !== null) {
+      const distance = Math.abs(mouseStartX.current - mouseEndX.current);
+      if (distance > 10) return;
+    }
+    
     setSelectedId(id);
     setSelectedName(name);
     setIsOpen(false);
@@ -88,6 +98,37 @@ export function EmployeeSelectDropdown({
     else if (distance < -50 && page > 1) setPage(p => p - 1); // Swipe right
     touchStartX.current = null;
     touchEndX.current = null;
+  };
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    mouseStartX.current = e.clientX;
+    mouseEndX.current = e.clientX;
+    isDragging.current = true;
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    mouseEndX.current = e.clientX;
+  };
+
+  const onMouseUp = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    
+    if (mouseStartX.current !== null && mouseEndX.current !== null) {
+      const distance = mouseStartX.current - mouseEndX.current;
+      if (distance > 50 && page < totalPages) setPage(p => p + 1);
+      else if (distance < -50 && page > 1) setPage(p => p - 1);
+    }
+    
+    setTimeout(() => {
+      mouseStartX.current = null;
+      mouseEndX.current = null;
+    }, 50);
+  };
+
+  const onMouseLeave = () => {
+    if (isDragging.current) onMouseUp();
   };
 
   return (
@@ -123,10 +164,14 @@ export function EmployeeSelectDropdown({
           </div>
           
           <div 
-            className="overflow-hidden min-h-[180px] relative"
+            className="overflow-hidden min-h-[180px] relative select-none"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseLeave}
           >
             <div className={`py-1 transition-opacity ${isLoadingSearch ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
               <button
@@ -168,8 +213,8 @@ export function EmployeeSelectDropdown({
             </div>
 
             {isLoadingSearch && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-[1px] z-10">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             )}
           </div>
