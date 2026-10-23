@@ -13,11 +13,11 @@ export default async function Dashboard() {
   const totalSoftwareAssets = await prisma.softwareAsset.count();
   const assignedAssets = await prisma.softwareAsset.count({ where: { status: "In Use" } });
   const availableAssets = await prisma.softwareAsset.count({ where: { status: "Available" } });
-  
+
   // Calculate expiring soon (less than 30 days)
   const thirtyDaysFromNow = new Date();
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-  
+
   const expiringSoonAssets = await prisma.softwareAsset.count({
     where: {
       expiryDate: {
@@ -27,7 +27,7 @@ export default async function Dashboard() {
       neverExpires: false
     }
   });
-  
+
   const expiredAssets = await prisma.softwareAsset.count({
     where: {
       expiryDate: {
@@ -78,20 +78,20 @@ export default async function Dashboard() {
   );
 }
 
-function StatCard({ 
-  title, 
-  value, 
+function StatCard({
+  title,
+  value,
   delay = 0,
   icon: Icon,
   accent = "default"
-}: { 
-  title: string; 
-  value: number; 
+}: {
+  title: string;
+  value: number;
   delay?: number;
   icon?: React.ElementType;
   accent?: "default" | "blue" | "green" | "slate" | "orange" | "red"
 }) {
-  
+
   const accentStyles = {
     default: "text-foreground/70 bg-primary/10",
     blue: "text-blue-500 bg-blue-500/10",
@@ -102,7 +102,7 @@ function StatCard({
   }
 
   return (
-    <div 
+    <div
       className="group relative overflow-hidden select-none bg-card/60 backdrop-blur-xl border border-border/40 rounded-xl p-5 flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:shadow-black/5 hover:-translate-y-1 hover:border-border/80 hover:bg-card/80 animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
       style={{ animationDelay: `${delay}ms`, animationDuration: '700ms' }}
     >

@@ -1,4 +1,6 @@
 import { signIn } from "@/auth"
+import { AuthError } from "next-auth"
+import { redirect } from "next/navigation"
 import { Monitor } from "lucide-react"
 
 export default async function LoginPage({
@@ -28,10 +30,24 @@ export default async function LoginPage({
         <form
           action={async (formData) => {
             "use server"
-            await signIn("credentials", formData)
+            try {
+              await signIn("credentials", formData)
+            } catch (error) {
+              if (
+                error instanceof AuthError ||
+                (error &&
+                  typeof error === "object" &&
+                  (("type" in error && (error as any).type === "CredentialsSignin") ||
+                    ("name" in error && (error as any).name === "CredentialsSignin")))
+              ) {
+                redirect("/login?error=CredentialsSignin")
+              }
+              throw error
+            }
           }}
           className="w-full space-y-4"
         >
+          <input type="hidden" name="redirectTo" value="/" />
           <div className="space-y-2">
             <label className="text-sm font-medium leading-none" htmlFor="email">
               Email

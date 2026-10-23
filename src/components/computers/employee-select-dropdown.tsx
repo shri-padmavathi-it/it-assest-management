@@ -77,7 +77,7 @@ export function EmployeeSelectDropdown({
     setPage(1);
   };
 
-  const selectEmployee = (id: string | null, name: string | null) => {
+  const selectEmployee = (id: string | null, name: string | null, emp?: Employee) => {
     // Prevent selection if the user was dragging
     if (mouseStartX.current !== null && mouseEndX.current !== null) {
       const distance = Math.abs(mouseStartX.current - mouseEndX.current);
@@ -87,6 +87,34 @@ export function EmployeeSelectDropdown({
     setSelectedId(id);
     setSelectedName(name);
     setIsOpen(false);
+
+    // If this dropdown is assigning a user to a computer, automatically sync status
+    if (inputName === "currentEmployeeId") {
+      const statusSelect = document.getElementById("status") as HTMLSelectElement | null;
+      if (statusSelect) {
+        if (id) {
+          statusSelect.value = "In Use";
+        } else {
+          statusSelect.value = "Available";
+        }
+        statusSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+        // Provide immediate visual feedback on the status dropdown
+        statusSelect.classList.add("ring-2", "ring-primary", "transition-all");
+        setTimeout(() => {
+          statusSelect.classList.remove("ring-2", "ring-primary");
+        }, 1200);
+      }
+
+      // Auto-populate department if empty and employee has a department
+      if (emp?.department) {
+        const deptInput = document.getElementById("department") as HTMLInputElement | null;
+        if (deptInput && !deptInput.value) {
+          deptInput.value = emp.department;
+          deptInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      }
+    }
   };
 
   const onTouchStart = (e: TouchEvent) => touchStartX.current = e.targetTouches[0].clientX;
@@ -195,7 +223,7 @@ export function EmployeeSelectDropdown({
                     <button
                       key={emp.id}
                       type="button"
-                      onClick={() => selectEmployee(emp.id, emp.name)}
+                      onClick={() => selectEmployee(emp.id, emp.name, emp)}
                       className={`flex w-full items-center justify-between px-3 py-2 text-sm hover:bg-muted text-left ${isSelected ? 'bg-muted/50 font-medium' : ''}`}
                     >
                       <div>

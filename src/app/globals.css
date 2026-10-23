@@ -104,30 +104,30 @@
   .glass-panel {
     @apply bg-background/60 backdrop-blur-xl border border-white/10 dark:border-white/5;
   }
-  
+
   .glass-card {
     @apply bg-card/40 backdrop-blur-md border border-border/50 shadow-sm transition-all duration-300;
   }
-  
+
   .glass-card:hover {
     @apply border-primary/30 bg-card/60 shadow-lg shadow-primary/5 -translate-y-1;
   }
-  
+
   .bg-mesh {
     background-color: hsl(var(--background));
-    background-image: 
-      radial-gradient(at 40% 20%, hsla(217,91%,60%,0.08) 0px, transparent 50%),
-      radial-gradient(at 80% 0%, hsla(220,90%,70%,0.08) 0px, transparent 50%),
-      radial-gradient(at 0% 50%, hsla(217,91%,60%,0.08) 0px, transparent 50%);
+    background-image:
+      radial-gradient(at 40% 20%, hsla(217, 91%, 60%, 0.08) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, hsla(220, 90%, 70%, 0.08) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, hsla(217, 91%, 60%, 0.08) 0px, transparent 50%);
   }
 
   :is(.dark *) .bg-mesh,
   .dark .bg-mesh {
     background-color: hsl(var(--background));
-    background-image: 
-      radial-gradient(at 40% 20%, hsla(217,91%,60%,0.1) 0px, transparent 50%),
-      radial-gradient(at 80% 0%, hsla(250,50%,30%,0.1) 0px, transparent 50%),
-      radial-gradient(at 0% 50%, hsla(217,91%,60%,0.1) 0px, transparent 50%);
+    background-image:
+      radial-gradient(at 40% 20%, hsla(217, 91%, 60%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, hsla(250, 50%, 30%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, hsla(217, 91%, 60%, 0.1) 0px, transparent 50%);
   }
 }
 
@@ -135,6 +135,7 @@
   * {
     border-color: hsl(var(--border));
   }
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));

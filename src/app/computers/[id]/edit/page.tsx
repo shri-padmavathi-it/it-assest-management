@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { EmployeeSelectDropdown } from "@/components/computers/employee-select-dropdown"
 
+import { BackButton } from "@/components/ui/back-button"
+
 export default async function EditComputerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   
@@ -20,9 +22,7 @@ export default async function EditComputerPage({ params }: { params: Promise<{ i
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-500 pb-12">
       <div className="flex items-center gap-4">
-        <Link href={`/computers`} className="p-2 hover:bg-muted rounded-full transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
+        <BackButton />
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Edit Computer Profile</h2>
           <p className="text-muted-foreground">Update hardware details, software, or assignments.</p>
@@ -145,13 +145,14 @@ export default async function EditComputerPage({ params }: { params: Promise<{ i
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <label htmlFor="status" className="text-sm font-medium">Status</label>
-              <select id="status" name="status" defaultValue={computer.status} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <select id="status" name="status" defaultValue={computer.status} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-all duration-300">
                 <option value="Available">Available</option>
                 <option value="In Use">In Use</option>
                 <option value="Not In Use">Not In Use</option>
                 <option value="Under Repair">Under Repair</option>
                 <option value="Retired">Retired</option>
               </select>
+              <p className="text-[12px] text-muted-foreground">Automatically updates to &quot;In Use&quot; when assigned or &quot;Available&quot; when unassigned.</p>
             </div>
             <div className="grid gap-2">
               <label htmlFor="complaints" className="text-sm font-medium">Complaints</label>

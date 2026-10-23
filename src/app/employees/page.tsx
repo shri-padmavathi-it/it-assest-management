@@ -5,15 +5,42 @@ import { deleteEmployee } from "@/app/actions";
 import { SyncEMSButton } from "@/components/employees/sync-ems-button";
 import { PaginationContainer } from "@/components/ui/pagination-container";
 import { EditEmployeeModal } from "@/components/employees/edit-employee-modal";
+import { TableSearch } from "@/components/ui/table-search";
 
-export default async function EmployeesPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+export default async function EmployeesPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string }> }) {
   const resolvedSearchParams = await searchParams;
   const page = parseInt(resolvedSearchParams.page || '1');
+  const query = (resolvedSearchParams.q || '').trim();
   const pageSize = 10;
   const skip = (page - 1) * pageSize;
 
+  const where = query
+    ? {
+        OR: [
+          { name: { contains: query } },
+          { employeeId: { contains: query } },
+          { email: { contains: query } },
+          { department: { contains: query } },
+          { designation: { contains: query } },
+          { location: { contains: query } },
+          { status: { contains: query } },
+          {
+            computers: {
+              some: {
+                OR: [
+                  { assetTag: { contains: query } },
+                  { computerName: { contains: query } },
+                ]
+              }
+            }
+          }
+        ],
+      }
+    : {};
+
   const [employees, totalEmployees] = await Promise.all([
     prisma.employee.findMany({
+      where,
       skip,
       take: pageSize,
       include: {
@@ -21,27 +48,47 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Pr
       },
       orderBy: { name: 'asc' }
     }),
-    prisma.employee.count()
+    prisma.employee.count({ where })
   ]);
 
   const totalPages = Math.ceil(totalEmployees / pageSize);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Employees</h2>
           <p className="text-muted-foreground">Manage employees and view their assigned assets.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <TableSearch basePath="/employees" placeholder="Search employee, ID, dept..." initialQuery={query} />
           <SyncEMSButton />
-          <Link href="/employees/new" className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+          <Link href="/employees/new" className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs">
             <Plus className="h-4 w-4" />
             Add Employee
           </Link>
         </div>
       </div>
-      
+
+      {query && (
+        <div className="flex items-center justify-between bg-muted/40 border rounded-lg px-4 py-2.5 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">
+              Search results for <span className="font-semibold text-foreground">&ldquo;{query}&rdquo;</span>
+            </span>
+            <span className="text-xs bg-primary/10 text-primary font-medium px-2.5 py-0.5 rounded-full">
+              {totalEmployees} {totalEmployees === 1 ? 'employee' : 'employees'} found
+            </span>
+          </div>
+          <Link
+            href="/employees"
+            className="text-xs text-primary hover:underline font-medium"
+          >
+            Clear search
+          </Link>
+        </div>
+      )}
+
       <PaginationContainer totalPages={totalPages} currentPage={page} basePath="/employees">
         <table className="w-full text-sm text-left">
           <thead className="text-xs uppercase bg-muted/50 border-b">
@@ -58,11 +105,26 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Pr
             {employees.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                  No employees found.
+                  {query ? (
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <p className="text-base font-semibold text-foreground">No employees found</p>
+                      <p className="text-sm text-muted-foreground">
+                        No results matching &ldquo;{query}&rdquo;
+                      </p>
+                      <Link
+                        href="/employees"
+                        className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground hover:bg-secondary/80 border transition-colors"
+                      >
+                        Clear search
+                      </Link>
+                    </div>
+                  ) : (
+                    "No employees found."
+                  )}
                 </td>
               </tr>
             ) : (
-              employees.map((emp) => (
+              employees.map((emp: any) => (
                 <tr key={emp.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                   <td className="px-6 py-4 font-medium">{emp.employeeId}</td>
                   <td className="px-6 py-4">
@@ -73,7 +135,7 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Pr
                   <td className="px-6 py-4">
                     {emp.computers.length > 0 ? (
                       <div className="flex gap-1 flex-wrap">
-                        {emp.computers.map(c => (
+                        {emp.computers.map((c: { id: string; assetTag: string }) => (
                           <Link key={c.id} href={`/computers/${c.id}`} className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
                             {c.assetTag}
                           </Link>
@@ -84,9 +146,8 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Pr
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-                      emp.status === 'Active' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-muted text-muted-foreground'
-                    }`}>
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${emp.status === 'Active' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-muted text-muted-foreground'
+                      }`}>
                       {emp.status}
                     </span>
                   </td>

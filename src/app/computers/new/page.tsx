@@ -124,13 +124,14 @@ export default async function NewComputerPage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <label htmlFor="status" className="text-sm font-medium">Status</label>
-              <select id="status" name="status" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <select id="status" name="status" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-all duration-300">
                 <option value="Available">Available</option>
                 <option value="In Use">In Use</option>
                 <option value="Not In Use">Not In Use</option>
                 <option value="Under Repair">Under Repair</option>
                 <option value="Retired">Retired</option>
               </select>
+              <p className="text-[12px] text-muted-foreground">Automatically updates to &quot;In Use&quot; when assigned or &quot;Available&quot; when unassigned.</p>
             </div>
             <div className="grid gap-2">
               <label htmlFor="complaints" className="text-sm font-medium">Complaints</label>

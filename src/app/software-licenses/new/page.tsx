@@ -14,9 +14,9 @@ export default function NewSoftwareLicensePage() {
           <p className="text-muted-foreground">Register a new software product or license into the system.</p>
         </div>
       </div>
-      
+
       <form action={addSoftwareAsset} className="rounded-md border bg-card text-card-foreground shadow-sm p-6 space-y-8">
-        
+
         {/* Core Details */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold border-b pb-2">1. Software Information</h3>
@@ -30,7 +30,7 @@ export default function NewSoftwareLicensePage() {
               <input id="vendor" name="vendor" type="text" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="e.g. Autodesk" />
             </div>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <label htmlFor="category" className="text-sm font-medium">Category</label>
@@ -56,10 +56,10 @@ export default function NewSoftwareLicensePage() {
           </div>
         </div>
 
-        {/* Credentials */}
+        {/* Credentials & Installations */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold border-b pb-2">2. Licensing & Credentials</h3>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
             <div className="grid gap-2">
               <label htmlFor="credentials" className="text-sm font-medium">License Key / Username</label>
               <input id="credentials" name="credentials" type="text" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="e.g. XXXX-XXXX-XXXX or user@company.com" />
@@ -67,6 +67,10 @@ export default function NewSoftwareLicensePage() {
             <div className="grid gap-2">
               <label htmlFor="password" className="text-sm font-medium">Password (Optional)</label>
               <input id="password" name="password" type="text" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="e.g. •••••••••" />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="allowedInstallations" className="text-sm font-medium">Allowed Installations</label>
+              <input id="allowedInstallations" name="allowedInstallations" type="number" defaultValue="1" min="1" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="e.g. 5" />
             </div>
           </div>
         </div>
@@ -84,7 +88,7 @@ export default function NewSoftwareLicensePage() {
               <label htmlFor="neverExpires" className="text-sm font-medium">Never Expires (Perpetual)</label>
             </div>
           </div>
-          
+
           <div className="grid gap-2 pt-2">
             <label htmlFor="description" className="text-sm font-medium">Description / Remarks</label>
             <textarea id="description" name="description" rows={3} className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Any additional notes about this software..."></textarea>

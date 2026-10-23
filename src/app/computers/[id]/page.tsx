@@ -4,6 +4,8 @@ import { ArrowLeft, Monitor, ShieldCheck, User } from "lucide-react"
 import { notFound } from "next/navigation"
 import { AssignComputerModal } from "@/components/computers/assign-computer-modal"
 
+import { BackButton } from "@/components/ui/back-button"
+
 export default async function ComputerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -29,9 +31,7 @@ export default async function ComputerDetailsPage({ params }: { params: Promise<
   return (
     <div className="space-y-6 max-w-5xl animate-in fade-in duration-500 pb-12">
       <div className="flex items-center gap-4">
-        <Link href="/computers" className="p-2 hover:bg-muted rounded-full transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
+        <BackButton />
         <div>
           <h2 className="text-3xl font-bold tracking-tight">{computer.computerName} Profile</h2>
           <p className="text-muted-foreground">Asset ID: {computer.assetTag}</p>

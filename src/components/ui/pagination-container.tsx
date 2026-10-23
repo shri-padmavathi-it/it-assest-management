@@ -13,6 +13,7 @@ interface PaginationContainerProps {
 
 export function PaginationContainer({ children, totalPages, currentPage, basePath }: PaginationContainerProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
@@ -20,7 +21,9 @@ export function PaginationContainer({ children, totalPages, currentPage, basePat
 
   const navigateToPage = (page: number) => {
     if (page < 1 || page > totalPages) return;
-    router.push(`${basePath}?page=${page}`);
+    const params = new URLSearchParams(searchParams ? searchParams.toString() : "");
+    params.set("page", page.toString());
+    router.push(`${basePath}?${params.toString()}`);
   };
 
   const onTouchStart = (e: TouchEvent) => {

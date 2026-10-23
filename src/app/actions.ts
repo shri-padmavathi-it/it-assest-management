@@ -37,7 +37,7 @@ export async function deleteEmployee(id: string) {
     await prisma.softwareHistory.updateMany({ where: { fromEmployeeId: id }, data: { fromEmployeeId: null } })
     await prisma.softwareHistory.updateMany({ where: { toEmployeeId: id }, data: { toEmployeeId: null } })
     await prisma.softwareAssignment.updateMany({ where: { employeeId: id }, data: { employeeId: null } })
-    await prisma.computer.updateMany({ where: { currentEmployeeId: id }, data: { currentEmployeeId: null } })
+    await prisma.computer.updateMany({ where: { currentEmployeeId: id }, data: { currentEmployeeId: null, status: 'Available' } })
     await prisma.employee.delete({ where: { id } })
     revalidatePath('/employees')
   } catch (error) {
@@ -51,8 +51,7 @@ export async function addComputer(formData: FormData) {
   const computerName = formData.get('computerName') as string
   const brand = formData.get('brand') as string
   const model = formData.get('model') as string
-  const status = formData.get('status') as string
-
+  const rawStatus = formData.get('status') as string
   const department = formData.get('department') as string
   const processor = formData.get('processor') as string
   const graphicsCard = formData.get('graphicsCard') as string
@@ -67,6 +66,13 @@ export async function addComputer(formData: FormData) {
   const notes = formData.get('notes') as string
   const currentEmployeeId = formData.get('currentEmployeeId') as string || null
   const oldUsers = formData.get('oldUsers') as string || null
+
+  let status = rawStatus || (currentEmployeeId ? 'In Use' : 'Available')
+  if (currentEmployeeId && status === 'Available') {
+    status = 'In Use'
+  } else if (!currentEmployeeId && status === 'In Use') {
+    status = 'Available'
+  }
 
   await prisma.computer.create({
     data: {
@@ -107,6 +113,8 @@ export async function addSoftwareAsset(formData: FormData) {
   const expiryDate = formData.get('expiryDate') as string
   const neverExpires = formData.get('neverExpires') === 'on'
   const description = formData.get('description') as string
+  const allowedInstallationsRaw = formData.get('allowedInstallations') as string
+  const allowedInstallations = allowedInstallationsRaw ? parseInt(allowedInstallationsRaw, 10) : 1
 
   await prisma.softwareAsset.create({
     data: {
@@ -119,6 +127,7 @@ export async function addSoftwareAsset(formData: FormData) {
       expiryDate: expiryDate && !neverExpires ? new Date(expiryDate) : null,
       neverExpires,
       description,
+      allowedInstallations,
       status: 'Available'
     }
   })
@@ -153,17 +162,51 @@ export async function importComputersFromCSV(formData: FormData) {
   }
 
   const text = await file.text();
-  const lines = text.split('\n').filter(line => line.trim().length > 0);
-  if (lines.length < 2) throw new Error("CSV file is empty or missing headers");
 
-  const splitRegex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
-  const headers = lines[0].split(splitRegex).map(h => h.trim().replace(/^"|"$/g, ''));
+  // Robust CSV parser to handle newlines inside quotes
+  const parseCSV = (csvText: string) => {
+    const result: string[][] = [];
+    let row: string[] = [];
+    let currentVal = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < csvText.length; i++) {
+      const char = csvText[i];
+      if (char === '"') {
+        if (inQuotes && csvText[i + 1] === '"') {
+          currentVal += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        row.push(currentVal.trim());
+        currentVal = '';
+      } else if ((char === '\n' || char === '\r') && !inQuotes) {
+        if (char === '\r' && csvText[i + 1] === '\n') i++;
+        row.push(currentVal.trim());
+        if (row.some(val => val !== '')) result.push(row);
+        row = [];
+        currentVal = '';
+      } else {
+        currentVal += char;
+      }
+    }
+    if (currentVal || row.length > 0) {
+      row.push(currentVal.trim());
+      if (row.some(val => val !== '')) result.push(row);
+    }
+    return result;
+  };
+
+  const lines = parseCSV(text);
+  if (lines.length < 2) throw new Error("CSV file is empty or missing headers");
 
   let successCount = 0;
 
   for (let i = 1; i < lines.length; i++) {
     try {
-      const currentline = lines[i].split(splitRegex).map(val => val.trim().replace(/^"|"$/g, ''));
+      const currentline = lines[i];
 
       const assetTag = currentline[1];
       if (!assetTag || assetTag === 'System No' || assetTag.trim() === '') continue;
@@ -177,6 +220,7 @@ export async function importComputersFromCSV(formData: FormData) {
       const ram = currentline[8];
       const storage = currentline[9];
       const operatingSystem = currentline[10];
+      const office365Login = currentline[11];
       const serialNumber = currentline[12];
       const deviceId = currentline[13];
       const macId = currentline[14];
@@ -199,7 +243,7 @@ export async function importComputersFromCSV(formData: FormData) {
           ram: ram,
           storage: storage,
           operatingSystem: operatingSystem,
-          office365Login: null,
+          office365Login: office365Login,
           serialNumber: serialNumber,
           deviceId: deviceId,
           macId: macId,
@@ -220,7 +264,7 @@ export async function importComputersFromCSV(formData: FormData) {
           ram: ram,
           storage: storage,
           operatingSystem: operatingSystem,
-          office365Login: null,
+          office365Login: office365Login,
           serialNumber: serialNumber,
           deviceId: deviceId,
           macId: macId,
@@ -246,34 +290,31 @@ export async function importComputersFromCSV(formData: FormData) {
 
 export async function syncEmployeesFromEMS() {
   try {
-    const response = await fetch('https://api.shripadmavathi.com/auth/users?page=0&size=500&isActive=true', {
-      cache: 'no-store'
-    });
+    const [resActive, resInactive] = await Promise.all([
+      fetch('https://api.shripadmavathi.com/auth/users?page=0&size=500&isActive=true', { cache: 'no-store' }),
+      fetch('https://api.shripadmavathi.com/auth/users?page=0&size=500&isActive=false', { cache: 'no-store' })
+    ]);
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch from EMS API (Status: ${response.status})`);
+    if (!resActive.ok || !resInactive.ok) {
+      throw new Error(`Failed to fetch from EMS API (Active: ${resActive.status}, Inactive: ${resInactive.status})`);
     }
 
-    const data = await response.json();
+    const dataActive = await resActive.json();
+    const dataInactive = await resInactive.json();
 
-    // Attempt to locate the user array in the response structure
-    let users: any[] = [];
-    if (Array.isArray(data)) {
-      users = data;
-    } else if (data.content && Array.isArray(data.content)) {
-      users = data.content;
-    } else if (data.users && Array.isArray(data.users)) {
-      users = data.users;
-    } else if (data.data && Array.isArray(data.data)) {
-      users = data.data;
-    } else {
-      // Fallback: search for the first array in the top-level keys
+    const extractUsers = (data: any) => {
+      if (Array.isArray(data)) return data;
+      if (data.content && Array.isArray(data.content)) return data.content;
+      if (data.users && Array.isArray(data.users)) return data.users;
+      if (data.data && Array.isArray(data.data)) return data.data;
       const arrayKey = Object.keys(data).find(key => Array.isArray(data[key]));
-      if (arrayKey) {
-        users = data[arrayKey];
-      } else {
-        throw new Error("Could not find an array of users in the EMS response.");
-      }
+      return arrayKey ? data[arrayKey] : [];
+    };
+
+    const users = [...extractUsers(dataActive), ...extractUsers(dataInactive)];
+
+    if (users.length === 0) {
+      throw new Error("Could not find an array of users in the EMS response.");
     }
 
     let count = 0;
@@ -331,7 +372,7 @@ export async function editComputer(formData: FormData) {
   const computerName = formData.get('computerName') as string
   const brand = formData.get('brand') as string
   const model = formData.get('model') as string
-  const status = formData.get('status') as string
+  const rawStatus = formData.get('status') as string
 
   const department = formData.get('department') as string
   const processor = formData.get('processor') as string
@@ -348,7 +389,22 @@ export async function editComputer(formData: FormData) {
   const newEmployeeId = formData.get('currentEmployeeId') as string || null
   const oldUsers = formData.get('oldUsers') as string || null
 
-  const existingComputer = await prisma.computer.findUnique({ where: { id } });
+  const existingComputer = await prisma.computer.findUnique({
+    where: { id },
+    include: { currentEmployee: true }
+  });
+
+  let status = rawStatus || (newEmployeeId ? 'In Use' : 'Available')
+  if (newEmployeeId && status === 'Available') {
+    status = 'In Use'
+  } else if (!newEmployeeId && status === 'In Use') {
+    status = 'Available'
+  }
+
+  const resolvedOldUsers = oldUsers ||
+    (existingComputer && existingComputer.currentEmployeeId !== newEmployeeId && existingComputer.currentEmployee?.name
+      ? existingComputer.currentEmployee.name
+      : existingComputer?.oldUsers || null);
 
   await prisma.computer.update({
     where: { id },
@@ -357,7 +413,7 @@ export async function editComputer(formData: FormData) {
       computerName,
       brand,
       model,
-      status: newEmployeeId && status === 'Available' ? 'In Use' : status,
+      status,
       department,
       processor,
       graphicsCard,
@@ -367,7 +423,7 @@ export async function editComputer(formData: FormData) {
       office365Login,
       serialNumber,
       macId,
-      oldUsers,
+      oldUsers: resolvedOldUsers,
       antivirusInstalled,
       complaints,
       notes,
@@ -451,4 +507,104 @@ export async function searchEmployees(query: string, page: number = 1) {
     employees,
     totalPages: Math.ceil(total / pageSize)
   };
+}
+
+export async function assignSoftwareAsset(formData: FormData) {
+  const softwareAssetId = formData.get('softwareAssetId') as string
+  const computerId = formData.get('computerId') as string | null
+  const employeeId = formData.get('employeeId') as string | null
+
+  if (!softwareAssetId || (!computerId && !employeeId)) {
+    throw new Error('Invalid assignment data')
+  }
+
+  // Check if we have available installations
+  const asset = await prisma.softwareAsset.findUnique({
+    where: { id: softwareAssetId },
+    include: { assignments: { where: { status: 'Active' } } }
+  })
+
+  if (!asset) throw new Error('Asset not found')
+
+  if (asset.assignments.length >= asset.allowedInstallations) {
+    throw new Error('No available installations for this license')
+  }
+
+  // Create assignment
+  await prisma.softwareAssignment.create({
+    data: {
+      softwareAssetId,
+      computerId: computerId || null,
+      employeeId: employeeId || null,
+      status: 'Active'
+    }
+  })
+
+  // Update status to 'In Use'
+  await prisma.softwareAsset.update({
+    where: { id: softwareAssetId },
+    data: { status: 'In Use' }
+  })
+
+  revalidatePath('/software-licenses')
+  redirect('/software-licenses')
+}
+
+export async function unassignSoftwareAsset(assignmentId: string, softwareAssetId: string) {
+  // Update the assignment status to 'Removed'
+  await prisma.softwareAssignment.update({
+    where: { id: assignmentId },
+    data: {
+      status: 'Removed',
+      removedDate: new Date()
+    }
+  })
+
+  // Check if there are any remaining active assignments
+  const activeAssignments = await prisma.softwareAssignment.count({
+    where: { softwareAssetId, status: 'Active' }
+  })
+
+  // If none, set asset status back to 'Available'
+  if (activeAssignments === 0) {
+    await prisma.softwareAsset.update({
+      where: { id: softwareAssetId },
+      data: { status: 'Available' }
+    })
+  }
+
+  revalidatePath(`/software-licenses/${softwareAssetId}/assign`)
+  revalidatePath('/software-licenses')
+}
+
+export async function editSoftwareAsset(formData: FormData) {
+  const id = formData.get('id') as string;
+  const name = formData.get('name') as string;
+  const vendor = formData.get('vendor') as string;
+  const category = formData.get('category') as string;
+  const licenseType = formData.get('licenseType') as string;
+  const credentials = formData.get('credentials') as string;
+  const password = formData.get('password') as string;
+  const allowedInstallations = parseInt(formData.get('allowedInstallations') as string) || 1;
+  const expiryDate = formData.get('expiryDate') as string;
+  const neverExpires = formData.get('neverExpires') === 'on';
+
+  await prisma.softwareAsset.update({
+    where: { id },
+    data: {
+      name,
+      vendor: vendor || null,
+      category: category || null,
+      licenseType,
+      credentials: credentials || null,
+      password: password || null,
+      allowedInstallations,
+      expiryDate: (neverExpires || !expiryDate) ? null : new Date(expiryDate),
+      neverExpires,
+    }
+  });
+
+  revalidatePath('/software-licenses');
+  revalidatePath(`/software-licenses/${id}`);
+  redirect(`/software-licenses/${id}`);
 }
