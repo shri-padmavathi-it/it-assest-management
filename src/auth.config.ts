@@ -8,16 +8,16 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isOnLogin = nextUrl.pathname.startsWith('/login');
-      
+
       if (isOnLogin) {
         if (isLoggedIn) return Response.redirect(new URL('/', nextUrl));
         return true;
       }
-      
+
       if (!isLoggedIn) {
         return false; // Redirects to sign-in page
       }
-      
+
       return true;
     },
     async session({ session, token }) {
@@ -38,3 +38,20 @@ export const authConfig = {
   },
   providers: [], // configured in auth.ts
 } satisfies NextAuthConfig
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
