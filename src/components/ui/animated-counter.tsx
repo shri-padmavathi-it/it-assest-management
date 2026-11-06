@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 
 export function AnimatedCounter({ 
   value, 
-  duration = 700 
+  duration = 1600,
+  delay = 150
 }: { 
   value: number; 
   duration?: number;
+  delay?: number;
 }) {
   const [count, setCount] = useState(0);
 
@@ -20,30 +22,35 @@ export function AnimatedCounter({
     let startTime: number | null = null;
     let animationFrameId: number;
 
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // Fast start and smooth finish (easeOutExpo)
-      const easeOut = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      const current = Math.floor(easeOut * value);
+    const timeoutId = setTimeout(() => {
+      const animate = (timestamp: number) => {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Smooth easeOutCubic curve for comfortable, readable counting pace
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(easeOut * value);
 
-      setCount(current);
+        setCount(current);
 
-      if (progress < 1) {
-        animationFrameId = requestAnimationFrame(animate);
-      } else {
-        setCount(value);
-      }
-    };
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        } else {
+          setCount(value);
+        }
+      };
 
-    animationFrameId = requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
+    }, delay);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      clearTimeout(timeoutId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
     };
-  }, [value, duration]);
+  }, [value, duration, delay]);
 
   return <span className="tabular-nums">{count}</span>;
 }

@@ -147,7 +147,7 @@ function StatCard({
       </div>
       <div className="mt-5 flex items-baseline gap-2">
         <span className="text-3xl font-bold tracking-tight text-foreground/90">
-          <AnimatedCounter value={value} />
+          <AnimatedCounter value={value} delay={delay + 100} duration={1600} />
         </span>
       </div>
     </div>
