@@ -697,8 +697,10 @@ export async function assignSoftwareAsset(formData: FormData) {
   revalidatePath('/software-licenses/permanent')
   revalidatePath('/software-licenses/subscriptions')
   revalidatePath(`/software-licenses/${softwareAssetId}`)
+  revalidatePath(`/software-licenses/${softwareAssetId}/assign`)
   revalidatePath('/')
-  redirect('/software-licenses')
+  const isSubscription = asset.licenseType.toLowerCase().includes('subscription')
+  redirect(isSubscription ? '/software-licenses/subscriptions' : '/software-licenses/permanent')
 }
 
 export async function unassignSoftwareAsset(assignmentId: string, softwareAssetId: string) {
@@ -724,8 +726,12 @@ export async function unassignSoftwareAsset(assignmentId: string, softwareAssetI
     })
   }
 
-  revalidatePath(`/software-licenses/${softwareAssetId}/assign`)
   revalidatePath('/software-licenses')
+  revalidatePath('/software-licenses/permanent')
+  revalidatePath('/software-licenses/subscriptions')
+  revalidatePath(`/software-licenses/${softwareAssetId}/assign`)
+  revalidatePath(`/software-licenses/${softwareAssetId}`)
+  revalidatePath('/')
 }
 
 export async function editSoftwareAsset(formData: FormData) {
