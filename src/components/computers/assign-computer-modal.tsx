@@ -13,10 +13,12 @@ interface Employee {
 
 export function AssignComputerModal({ 
   computerId, 
-  currentEmployee 
+  currentEmployee,
+  currentLocation
 }: { 
   computerId: string;
   currentEmployee: Employee | null;
+  currentLocation?: string | null;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -25,9 +27,18 @@ export function AssignComputerModal({
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingSearch, setIsLoadingSearch] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string>(
+    currentLocation === "ABB" ? "ABB" : "In-House"
+  );
   
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedLocation(currentLocation === "ABB" ? "ABB" : "In-House");
+    }
+  }, [isOpen, currentLocation]);
 
   // Fetch employees when query or page changes
   useEffect(() => {
@@ -58,7 +69,7 @@ export function AssignComputerModal({
   const handleAssign = async (employeeId: string | null) => {
     setIsPending(true);
     try {
-      await assignComputer(computerId, employeeId);
+      await assignComputer(computerId, employeeId, selectedLocation);
       setIsOpen(false);
     } catch (err) {
       console.error(err);
@@ -106,6 +117,37 @@ export function AssignComputerModal({
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Current User (Old)</span>
                 <div className="font-medium text-lg">{currentEmployee ? currentEmployee.name : "Unassigned"}</div>
                 {currentEmployee && <div className="text-sm text-muted-foreground">{currentEmployee.employeeId} • {currentEmployee.department || 'No Dept'}</div>}
+              </div>
+
+              {/* Location Selector */}
+              <div className="space-y-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Device Location
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLocation("In-House")}
+                    className={`flex items-center justify-center py-2 px-3 text-sm font-medium rounded-lg border transition-all ${
+                      selectedLocation === "In-House"
+                        ? "bg-primary text-primary-foreground border-primary shadow-xs font-semibold"
+                        : "bg-background hover:bg-muted text-muted-foreground border-input"
+                    }`}
+                  >
+                    In-House
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLocation("ABB")}
+                    className={`flex items-center justify-center py-2 px-3 text-sm font-medium rounded-lg border transition-all ${
+                      selectedLocation === "ABB"
+                        ? "bg-primary text-primary-foreground border-primary shadow-xs font-semibold"
+                        : "bg-background hover:bg-muted text-muted-foreground border-input"
+                    }`}
+                  >
+                    ABB
+                  </button>
+                </div>
               </div>
 
               {/* Search Box */}

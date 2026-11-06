@@ -53,6 +53,7 @@ export async function addComputer(formData: FormData) {
   const model = formData.get('model') as string
   const rawStatus = formData.get('status') as string
   const department = formData.get('department') as string
+  const location = (formData.get('location') as string)?.trim() || null
   const processor = formData.get('processor') as string
   const graphicsCard = formData.get('graphicsCard') as string
   const ram = formData.get('ram') as string
@@ -82,6 +83,7 @@ export async function addComputer(formData: FormData) {
       model,
       status,
       department,
+      location,
       processor,
       graphicsCard,
       ram,
@@ -99,6 +101,7 @@ export async function addComputer(formData: FormData) {
   })
 
   revalidatePath('/computers')
+  revalidatePath('/')
   redirect('/computers')
 }
 
@@ -375,6 +378,7 @@ export async function editComputer(formData: FormData) {
   const rawStatus = formData.get('status') as string
 
   const department = formData.get('department') as string
+  const location = (formData.get('location') as string)?.trim() || null
   const processor = formData.get('processor') as string
   const graphicsCard = formData.get('graphicsCard') as string
   const ram = formData.get('ram') as string
@@ -415,6 +419,7 @@ export async function editComputer(formData: FormData) {
       model,
       status,
       department,
+      location,
       processor,
       graphicsCard,
       ram,
@@ -446,24 +451,39 @@ export async function editComputer(formData: FormData) {
 
   revalidatePath('/computers')
   revalidatePath(`/computers/${id}`)
+  revalidatePath('/')
   redirect(`/computers/${id}`)
 }
 
-export async function assignComputer(computerId: string, newEmployeeId: string | null) {
+export async function assignComputer(
+  computerId: string,
+  newEmployeeId: string | null,
+  location?: string | null
+) {
   const computer = await prisma.computer.findUnique({ where: { id: computerId } });
   if (!computer) throw new Error("Computer not found");
 
   const previousEmployeeId = computer.currentEmployeeId;
 
-  if (previousEmployeeId !== newEmployeeId) {
-    await prisma.computer.update({
-      where: { id: computerId },
-      data: {
-        currentEmployeeId: newEmployeeId,
-        status: newEmployeeId ? 'In Use' : 'Available'
-      }
-    });
+  const updateData: {
+    currentEmployeeId: string | null;
+    status: string;
+    location?: string | null;
+  } = {
+    currentEmployeeId: newEmployeeId,
+    status: newEmployeeId ? 'In Use' : 'Available'
+  };
 
+  if (location !== undefined) {
+    updateData.location = location ? location.trim() : null;
+  }
+
+  await prisma.computer.update({
+    where: { id: computerId },
+    data: updateData
+  });
+
+  if (previousEmployeeId !== newEmployeeId) {
     await prisma.computerHistory.create({
       data: {
         computerId,
@@ -473,12 +493,11 @@ export async function assignComputer(computerId: string, newEmployeeId: string |
         performedBy: 'System'
       }
     });
-
-    // Unassign software from old user and assign to new user (optional, depending on logic, but let's keep it simple for now)
   }
 
   revalidatePath('/computers');
   revalidatePath(`/computers/${computerId}`);
+  revalidatePath('/');
 }
 
 export async function searchEmployees(query: string, page: number = 1) {

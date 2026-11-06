@@ -1,11 +1,28 @@
 import { prisma } from "@/lib/prisma";
-import { Monitor, Key, Users, Package, AlertTriangle, PowerOff, CheckCircle2 } from "lucide-react";
+import { Monitor, Key, Users, Package, AlertTriangle, PowerOff, Building2, Building } from "lucide-react";
 
 export default async function Dashboard() {
   // Fetch stats from DB
   const totalComputers = await prisma.computer.count();
-  const computersInUse = await prisma.computer.count({ where: { status: "In Use" } });
-  const computersAvailable = await prisma.computer.count({ where: { status: "Available" } });
+  const computersInHouse = await prisma.computer.count({
+    where: {
+      OR: [
+        { location: "In-House" },
+        { location: "in-house" },
+        { location: "In House" },
+        { location: "in house" },
+      ]
+    }
+  });
+  const computersABB = await prisma.computer.count({
+    where: {
+      OR: [
+        { location: "ABB" },
+        { location: "abb" },
+        { location: "Abb" },
+      ]
+    }
+  });
   const computersNotInUse = await prisma.computer.count({ where: { status: "Not In Use" } });
   const computersUnderRepair = await prisma.computer.count({ where: { status: "Under Repair" } });
   const computersRetired = await prisma.computer.count({ where: { status: "Retired" } });
@@ -52,8 +69,8 @@ export default async function Dashboard() {
         </h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <StatCard title="Total" value={totalComputers} delay={100} icon={Monitor} accent="default" />
-          <StatCard title="In Use" value={computersInUse} delay={200} icon={CheckCircle2} accent="blue" />
-          <StatCard title="Available" value={computersAvailable} delay={300} icon={CheckCircle2} accent="green" />
+          <StatCard title="In-House" value={computersInHouse} delay={200} icon={Building2} accent="blue" />
+          <StatCard title="ABB" value={computersABB} delay={300} icon={Building} accent="green" />
           <StatCard title="Not In Use" value={computersNotInUse} delay={400} icon={PowerOff} accent="slate" />
           <StatCard title="Under Repair" value={computersUnderRepair} delay={500} icon={AlertTriangle} accent="orange" />
           <StatCard title="Retired" value={computersRetired} delay={600} icon={AlertTriangle} accent="red" />

@@ -131,6 +131,22 @@ export default async function EditComputerPage({ params }: { params: Promise<{ i
               <label htmlFor="department" className="text-sm font-medium">Team / Department</label>
               <input id="department" name="department" defaultValue={computer.department || ''} type="text" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
             </div>
+            <div className="grid gap-2">
+              <label htmlFor="location" className="text-sm font-medium">Location</label>
+              <select 
+                id="location" 
+                name="location" 
+                defaultValue={computer.location || ''} 
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-all duration-300"
+              >
+                <option value="">Select Location</option>
+                <option value="In-House">In-House</option>
+                <option value="ABB">ABB</option>
+                {computer.location && !['In-House', 'ABB'].includes(computer.location) && (
+                  <option value={computer.location}>{computer.location}</option>
+                )}
+              </select>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 pt-2">

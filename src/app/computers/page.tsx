@@ -177,7 +177,21 @@ export default async function ComputersPage({ searchParams }: { searchParams: Pr
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4">{comp.location || '—'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {comp.location ? (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          comp.location === 'In-House'
+                            ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20'
+                            : comp.location === 'ABB'
+                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
+                            : 'bg-muted text-muted-foreground border'
+                        }`}>
+                          {comp.location}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground/60 text-xs italic">—</span>
+                      )}
+                    </td>
                   <td className="px-6 py-4 text-right flex justify-end gap-2">
                     <Link href={`/computers/${comp.id}/edit`} className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-500/10 transition-colors" title="Edit">
                       <Edit2 className="h-4 w-4" />

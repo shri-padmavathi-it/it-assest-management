@@ -27,6 +27,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
+  const isLoggedIn = !!session?.user;
   return (
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="h-full flex text-foreground overflow-hidden bg-mesh transition-colors duration-500">
@@ -36,9 +37,9 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Sidebar />
+          {isLoggedIn && <Sidebar />}
           <div className="flex flex-col flex-1 overflow-hidden">
-            {session?.user && <Topbar user={session.user} />}
+            {isLoggedIn && <Topbar user={session.user} />}
             <main className="flex-1 overflow-y-auto p-6 relative">
               {children}
             </main>

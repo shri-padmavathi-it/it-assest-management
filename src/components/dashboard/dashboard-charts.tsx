@@ -12,11 +12,11 @@ export function DashboardCharts({
   softwareStats: any
 }) {
   const pieData = [
-    { name: 'In Use', value: computerStats.inUse },
-    { name: 'Available', value: computerStats.available },
-    { name: 'Not In Use', value: computerStats.notInUse },
-    { name: 'Under Repair', value: computerStats.underRepair },
-    { name: 'Retired', value: computerStats.retired },
+    { name: 'In-House', value: computerStats.inHouse || 0 },
+    { name: 'ABB', value: computerStats.abb || 0 },
+    { name: 'Not In Use', value: computerStats.notInUse || 0 },
+    { name: 'Under Repair', value: computerStats.underRepair || 0 },
+    { name: 'Retired', value: computerStats.retired || 0 },
   ].filter(d => d.value > 0)
 
   const barData = [

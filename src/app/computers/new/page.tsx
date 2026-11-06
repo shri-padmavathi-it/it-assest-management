@@ -110,6 +110,14 @@ export default async function NewComputerPage() {
               <label htmlFor="department" className="text-sm font-medium">Team / Department</label>
               <input id="department" name="department" type="text" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="e.g. Engineering" />
             </div>
+            <div className="grid gap-2">
+              <label htmlFor="location" className="text-sm font-medium">Location</label>
+              <select id="location" name="location" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-all duration-300">
+                <option value="">Select Location</option>
+                <option value="In-House">In-House</option>
+                <option value="ABB">ABB</option>
+              </select>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 pt-2">

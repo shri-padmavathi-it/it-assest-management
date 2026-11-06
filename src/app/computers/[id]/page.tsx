@@ -48,13 +48,19 @@ export default async function ComputerDetailsPage({ params }: { params: Promise<
                 <Monitor className="h-5 w-5 text-primary" />
                 Device Status
               </div>
-              <AssignComputerModal computerId={computer.id} currentEmployee={computer.currentEmployee as any} />
+              <AssignComputerModal computerId={computer.id} currentEmployee={computer.currentEmployee as any} currentLocation={computer.location} />
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Status</span>
                 <span className={`font-semibold ${computer.status === 'In Use' ? 'text-green-500' : 'text-blue-500'}`}>
                   {computer.status}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Location</span>
+                <span className={`font-semibold ${computer.location === 'ABB' ? 'text-emerald-500' : computer.location === 'In-House' ? 'text-blue-500' : 'text-foreground'}`}>
+                  {computer.location || '—'}
                 </span>
               </div>
               <div className="flex justify-between">
