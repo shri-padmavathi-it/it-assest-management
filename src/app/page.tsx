@@ -1,10 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { Monitor, Key, Users, Package, AlertTriangle, PowerOff, Building2, Building } from "lucide-react";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 export const revalidate = 60;
 
 export default async function Dashboard() {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login");
+  }
+
   const thirtyDaysFromNow = new Date();
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
   const now = new Date();
