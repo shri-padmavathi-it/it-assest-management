@@ -129,6 +129,87 @@
       radial-gradient(at 80% 0%, hsla(250, 50%, 30%, 0.1) 0px, transparent 50%),
       radial-gradient(at 0% 50%, hsla(217, 91%, 60%, 0.1) 0px, transparent 50%);
   }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes table-loader {
+    0% {
+      transform: translateX(-100%);
+      width: 30%;
+    }
+    50% {
+      transform: translateX(100%);
+      width: 60%;
+    }
+    100% {
+      transform: translateX(300%);
+      width: 30%;
+    }
+  }
+
+  @keyframes top-loader {
+    0% {
+      width: 0%;
+      left: 0;
+    }
+    50% {
+      width: 60%;
+      left: 20%;
+    }
+    100% {
+      width: 100%;
+      left: 100%;
+    }
+  }
+
+  .animate-table-loader {
+    animation: table-loader 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: rgb(226 232 240 / 0.9); /* slate-200 with solid visibility */
+  }
+
+  :is(.dark *) .skeleton-shimmer,
+  .dark .skeleton-shimmer {
+    background-color: rgb(30 41 59 / 0.9); /* slate-800 */
+  }
+
+  .skeleton-shimmer::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.8) 50%,
+      transparent 100%
+    );
+    animation: shimmer 1.3s infinite ease-in-out;
+    content: '';
+  }
+
+  :is(.dark *) .skeleton-shimmer::after,
+  .dark .skeleton-shimmer::after {
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%
+    );
+  }
 }
 
 @layer base {

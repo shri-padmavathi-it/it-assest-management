@@ -124,43 +124,62 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Pr
                 </td>
               </tr>
             ) : (
-              employees.map((emp: any) => (
-                <tr key={emp.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4 font-medium">{emp.employeeId}</td>
-                  <td className="px-6 py-4">
-                    <div>{emp.name}</div>
-                    <div className="text-xs text-muted-foreground">{emp.email}</div>
-                  </td>
-                  <td className="px-6 py-4">{emp.department || '—'}</td>
-                  <td className="px-6 py-4">
-                    {emp.computers.length > 0 ? (
-                      <div className="flex gap-1 flex-wrap">
-                        {emp.computers.map((c: { id: string; assetTag: string }) => (
-                          <Link key={c.id} href={`/computers/${c.id}`} className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
-                            {c.assetTag}
-                          </Link>
-                        ))}
+              employees.map((emp: any) => {
+                const isManual = emp.location === "Manual" || emp.designation === "Manual";
+
+                return (
+                  <tr key={emp.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                    <td className="px-6 py-4 font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <span>{emp.employeeId}</span>
+                        {isManual && (
+                          <span className="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 px-1.5 py-0.2 rounded font-medium">
+                            Manual
+                          </span>
+                        )}
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground">None</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${emp.status === 'Active' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-muted text-muted-foreground'
-                      }`}>
-                      {emp.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right flex justify-end gap-2">
-                    <EditEmployeeModal employee={emp} />
-                    <form action={deleteEmployee.bind(null, emp.id)}>
-                      <button type="submit" className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-500/10 transition-colors" title="Delete">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>{emp.name}</div>
+                      <div className="text-xs text-muted-foreground">{emp.email}</div>
+                    </td>
+                    <td className="px-6 py-4">{emp.department || '—'}</td>
+                    <td className="px-6 py-4">
+                      {emp.computers.length > 0 ? (
+                        <div className="flex gap-1 flex-wrap">
+                          {emp.computers.map((c: { id: string; assetTag: string }) => (
+                            <Link key={c.id} href={`/computers/${c.id}`} className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
+                              {c.assetTag}
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">None</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${emp.status === 'Active' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-muted text-muted-foreground'
+                        }`}>
+                        {emp.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {isManual ? (
+                        <div className="flex justify-end gap-2">
+                          <EditEmployeeModal employee={emp} />
+                          <form action={deleteEmployee.bind(null, emp.id)}>
+                            <button type="submit" className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-500/10 transition-colors cursor-pointer" title="Delete">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </form>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground/40 text-xs italic">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

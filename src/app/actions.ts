@@ -24,6 +24,9 @@ export async function deleteSoftwareAsset(id: string) {
     await prisma.softwareHistory.deleteMany({ where: { softwareAssetId: id } })
     await prisma.softwareAsset.delete({ where: { id } })
     revalidatePath('/software-licenses')
+    revalidatePath('/software-licenses/permanent')
+    revalidatePath('/software-licenses/subscriptions')
+    revalidatePath('/')
   } catch (error) {
     console.error("Error deleting software asset:", error)
     throw new Error("Failed to delete software asset.")
@@ -155,7 +158,12 @@ export async function addSoftwareAsset(formData: FormData) {
   const password = formData.get('password') as string
   const expiryDate = formData.get('expiryDate') as string
   const neverExpires = formData.get('neverExpires') === 'on'
-  const description = formData.get('description') as string
+  const startDate = formData.get('startDate') as string
+  let description = (formData.get('description') as string) || ''
+  if (startDate) {
+    description = `[START_DATE:${startDate}]\n${description}`.trim()
+  }
+
   const allowedInstallationsRaw = formData.get('allowedInstallations') as string
   const allowedInstallations = allowedInstallationsRaw ? parseInt(allowedInstallationsRaw, 10) : 1
 
@@ -176,7 +184,14 @@ export async function addSoftwareAsset(formData: FormData) {
   })
 
   revalidatePath('/software-licenses')
-  redirect('/software-licenses')
+  revalidatePath('/software-licenses/permanent')
+  revalidatePath('/software-licenses/subscriptions')
+  revalidatePath('/')
+  if (licenseType === 'Subscription') {
+    redirect('/software-licenses/subscriptions')
+  } else {
+    redirect('/software-licenses/permanent')
+  }
 }
 
 export async function addEmployee(formData: FormData) {
@@ -190,7 +205,8 @@ export async function addEmployee(formData: FormData) {
       employeeId,
       name,
       email,
-      department
+      department,
+      location: "Manual"
     }
   })
 
@@ -403,7 +419,7 @@ export async function editEmployee(formData: FormData) {
 
   await prisma.employee.update({
     where: { id },
-    data: { name, email, department }
+    data: { name, email, department, location: "Manual" }
   })
 
   revalidatePath('/employees')
@@ -678,6 +694,10 @@ export async function assignSoftwareAsset(formData: FormData) {
   })
 
   revalidatePath('/software-licenses')
+  revalidatePath('/software-licenses/permanent')
+  revalidatePath('/software-licenses/subscriptions')
+  revalidatePath(`/software-licenses/${softwareAssetId}`)
+  revalidatePath('/')
   redirect('/software-licenses')
 }
 
@@ -719,6 +739,12 @@ export async function editSoftwareAsset(formData: FormData) {
   const allowedInstallations = parseInt(formData.get('allowedInstallations') as string) || 1;
   const expiryDate = formData.get('expiryDate') as string;
   const neverExpires = formData.get('neverExpires') === 'on';
+  const startDate = formData.get('startDate') as string;
+  let description = (formData.get('description') as string) || '';
+  description = description.replace(/\[START_DATE:[\d-]+\]\n?/, '').trim();
+  if (startDate) {
+    description = `[START_DATE:${startDate}]\n${description}`.trim();
+  }
 
   await prisma.softwareAsset.update({
     where: { id },
@@ -730,12 +756,16 @@ export async function editSoftwareAsset(formData: FormData) {
       credentials: credentials || null,
       password: password || null,
       allowedInstallations,
+      description: description || null,
       expiryDate: (neverExpires || !expiryDate) ? null : new Date(expiryDate),
       neverExpires,
     }
   });
 
   revalidatePath('/software-licenses');
+  revalidatePath('/software-licenses/permanent');
+  revalidatePath('/software-licenses/subscriptions');
   revalidatePath(`/software-licenses/${id}`);
+  revalidatePath('/');
   redirect(`/software-licenses/${id}`);
 }

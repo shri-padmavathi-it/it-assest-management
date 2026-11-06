@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { TopProgressBar } from "@/components/layout/top-progress-bar";
 import { auth } from "@/auth";
 
 const geistSans = Geist({
@@ -37,6 +38,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <TopProgressBar />
           {isLoggedIn && <Sidebar />}
           <div className="flex flex-col flex-1 overflow-hidden">
             {isLoggedIn && <Topbar user={session.user} />}

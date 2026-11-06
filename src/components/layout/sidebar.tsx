@@ -1,66 +1,209 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { 
   LayoutDashboard, 
   Monitor, 
   Users, 
   Package, 
   Key, 
-  ClipboardList, 
-  ArrowRightLeft, 
-  PowerOff, 
-  AlertTriangle, 
-  FileText, 
-  History, 
-  Settings 
+  RefreshCw, 
+  ChevronDown, 
+  ChevronRight
 } from "lucide-react"
-
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Computers', href: '/computers', icon: Monitor },
-  { name: 'Employees', href: '/employees', icon: Users },
-  { name: 'Software & Licenses', href: '/software-licenses', icon: Package },
-]
 
 export function Sidebar() {
   const pathname = usePathname()
-  const router = useRouter()
+  
+  // Check if current route is within software licenses
+  const isSoftwareActive = pathname.startsWith('/software-licenses') || pathname.startsWith('/softwares')
+  
+  // State for accordion collapse / expand
+  const [isSoftwareOpen, setIsSoftwareOpen] = useState(true)
+
+  // Keep accordion open if user navigates to a software route
+  useEffect(() => {
+    if (isSoftwareActive) {
+      setIsSoftwareOpen(true)
+    }
+  }, [isSoftwareActive])
 
   return (
-    <div className="group flex h-full w-[4.5rem] hover:w-64 flex-col border-r border-white/10 dark:border-white/5 bg-background/60 backdrop-blur-xl text-card-foreground z-20 transition-all duration-300 ease-in-out overflow-hidden relative">
-      <div className="flex h-16 items-center px-4 border-b whitespace-nowrap overflow-hidden">
-        <div className="flex items-center justify-center w-10 h-10 shrink-0 bg-primary/10 rounded-xl mr-3">
-          <Monitor className="h-5 w-5 text-primary" />
+    <aside className="group flex h-full w-[4.5rem] hover:w-64 flex-col border-r border-border/60 bg-card/70 backdrop-blur-xl text-card-foreground z-30 transition-all duration-300 ease-in-out overflow-x-hidden select-none shrink-0">
+      {/* Brand Header */}
+      <div className="flex h-16 items-center px-4 border-b border-border/50 whitespace-nowrap overflow-hidden">
+        <div className="flex items-center justify-center w-9 h-9 shrink-0 bg-primary/10 rounded-xl text-primary shadow-xs">
+          <Monitor className="h-5 w-5" />
         </div>
-        <h1 className="text-xl font-bold tracking-tight text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-          IT Asset Manager
-        </h1>
+        <div className="flex flex-col ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap overflow-hidden">
+          <h1 className="text-base font-bold tracking-tight text-foreground leading-none">
+            IT Asset Manager
+          </h1>
+          <span className="text-[11px] text-muted-foreground mt-1 font-medium">Enterprise Management</span>
+        </div>
       </div>
-      <div className="flex-1 overflow-y-auto py-4 overflow-x-hidden">
-        <nav className="space-y-2 px-3">
-          {navigation.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`) && item.href !== '/'
-            return (
-              <div
-                key={item.name}
-                onClick={() => router.push(item.href)}
-                className={`cursor-pointer flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-300 whitespace-nowrap overflow-hidden ${
-                  isActive 
-                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/40' 
-                    : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground group-hover:hover:translate-x-1'
-                }`}
-              >
-                <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-                  {item.name}
+
+      {/* Navigation List */}
+      <div className="flex-1 overflow-y-auto py-5 px-3 overflow-x-hidden">
+        <nav className="space-y-1.5">
+          {/* Dashboard */}
+          <Link
+            href="/"
+            className={`flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-all whitespace-nowrap overflow-hidden ${
+              pathname === '/'
+                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30 font-semibold'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+            }`}
+          >
+            <div
+              className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-colors ${
+                pathname === '/'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+              }`}
+            >
+              <LayoutDashboard className="h-4 w-4 shrink-0" />
+            </div>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap">
+              Dashboard
+            </span>
+          </Link>
+
+          {/* Computers */}
+          <Link
+            href="/computers"
+            className={`flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-all whitespace-nowrap overflow-hidden ${
+              pathname.startsWith('/computers')
+                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30 font-semibold'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+            }`}
+          >
+            <div
+              className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-colors ${
+                pathname.startsWith('/computers')
+                  ? 'bg-white/20 text-white'
+                  : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+              }`}
+            >
+              <Monitor className="h-4 w-4 shrink-0" />
+            </div>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap">
+              Computers
+            </span>
+          </Link>
+
+          {/* Employees */}
+          <Link
+            href="/employees"
+            className={`flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-all whitespace-nowrap overflow-hidden ${
+              pathname.startsWith('/employees')
+                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30 font-semibold'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+            }`}
+          >
+            <div
+              className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-colors ${
+                pathname.startsWith('/employees')
+                  ? 'bg-white/20 text-white'
+                  : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+              }`}
+            >
+              <Users className="h-4 w-4 shrink-0" />
+            </div>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap">
+              Employees
+            </span>
+          </Link>
+
+          {/* Softwares Accordion */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => setIsSoftwareOpen((prev) => !prev)}
+              className={`w-full flex items-center justify-between rounded-xl px-2.5 py-2 text-sm font-medium transition-all cursor-pointer whitespace-nowrap overflow-hidden ${
+                isSoftwareActive
+                  ? 'bg-muted/60 text-foreground font-semibold'
+                  : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-colors ${
+                    isSoftwareActive
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+                  }`}
+                >
+                  <Package className="h-4 w-4 shrink-0" />
+                </div>
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap">
+                  Softwares
                 </span>
               </div>
-            )
-          })}
+              <div
+                className={`p-1 rounded-md transition-all duration-200 opacity-0 group-hover:opacity-100 delay-75 shrink-0 ${
+                  isSoftwareOpen ? 'text-foreground' : 'text-muted-foreground/70'
+                }`}
+              >
+                {isSoftwareOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </div>
+            </button>
+
+            {/* Sub-menu with smooth expansion when accordion is open AND sidebar is hovered */}
+            {isSoftwareOpen && (
+              <div className="mt-1.5 space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100 pl-3 overflow-hidden">
+                {/* Permanent Licenses */}
+                <Link
+                  href="/software-licenses/permanent"
+                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-all whitespace-nowrap ${
+                    pathname === '/software-licenses/permanent'
+                      ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/30 font-semibold'
+                      : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                  }`}
+                >
+                  <div
+                    className={`flex items-center justify-center w-6 h-6 rounded-md shrink-0 transition-colors ${
+                      pathname === '/software-licenses/permanent'
+                        ? 'bg-white/20 text-white'
+                        : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+                    }`}
+                  >
+                    <Key className="h-3.5 w-3.5 shrink-0" />
+                  </div>
+                  <span className="flex-1 whitespace-nowrap">Permanent Licenses</span>
+                </Link>
+
+                {/* Subscription Licenses */}
+                <Link
+                  href="/software-licenses/subscriptions"
+                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-all whitespace-nowrap ${
+                    pathname === '/software-licenses/subscriptions'
+                      ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/30 font-semibold'
+                      : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                  }`}
+                >
+                  <div
+                    className={`flex items-center justify-center w-6 h-6 rounded-md shrink-0 transition-colors ${
+                      pathname === '/software-licenses/subscriptions'
+                        ? 'bg-white/20 text-white'
+                        : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+                    }`}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 shrink-0" />
+                  </div>
+                  <span className="flex-1 whitespace-nowrap">Subscription Licenses</span>
+                </Link>
+              </div>
+            )}
+          </div>
         </nav>
       </div>
-    </div>
+    </aside>
   )
 }

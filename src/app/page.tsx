@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Monitor, Key, Users, Package, AlertTriangle, PowerOff, Building2, Building } from "lucide-react";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 export default async function Dashboard() {
   // Fetch stats from DB
@@ -132,7 +133,9 @@ function StatCard({
         )}
       </div>
       <div className="mt-5 flex items-baseline gap-2">
-        <span className="text-3xl font-bold tracking-tight text-foreground/90">{value}</span>
+        <span className="text-3xl font-bold tracking-tight text-foreground/90">
+          <AnimatedCounter value={value} />
+        </span>
       </div>
     </div>
   )

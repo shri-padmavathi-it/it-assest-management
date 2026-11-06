@@ -19,6 +19,15 @@ export default async function EditSoftwarePage({ params }: { params: Promise<{ i
     ? new Date(asset.expiryDate).toISOString().split('T')[0] 
     : '';
 
+  const startDateMatch = asset.description?.match(/\[START_DATE:([\d-]+)\]/);
+  const formattedStartDate = startDateMatch
+    ? startDateMatch[1]
+    : asset.createdAt
+    ? new Date(asset.createdAt).toISOString().split('T')[0]
+    : '';
+
+  const cleanDescription = (asset.description || '').replace(/\[START_DATE:[\d-]+\]\n?/, '').trim();
+
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-500 pb-12">
       <div className="flex items-center gap-4">
@@ -55,11 +64,15 @@ export default async function EditSoftwarePage({ params }: { params: Promise<{ i
             <div className="grid gap-2">
               <label htmlFor="licenseType" className="text-sm font-medium">License Type *</label>
               <select required id="licenseType" name="licenseType" defaultValue={asset.licenseType} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                <option value="Subscription">Subscription (SaaS)</option>
-                <option value="Perpetual">Perpetual (One-time)</option>
-                <option value="Volume">Volume License</option>
-                <option value="Open Source">Open Source / Free</option>
-                <option value="Other">Other</option>
+                <optgroup label="Permanent / Perpetual">
+                  <option value="Per Device License">Permanent - Per Device License (Node-Locked)</option>
+                  <option value="Network License">Permanent - Network / Floating License</option>
+                  <option value="Per User License">Permanent - Standalone / Per User</option>
+                  <option value="Perpetual">Permanent - Perpetual</option>
+                </optgroup>
+                <optgroup label="Subscription / Renewable">
+                  <option value="Subscription">Subscription - Cloud / Recurring</option>
+                </optgroup>
               </select>
             </div>
             <div className="grid gap-2">
@@ -84,18 +97,26 @@ export default async function EditSoftwarePage({ params }: { params: Promise<{ i
           </div>
         </div>
 
-        {/* Expiry Details */}
+        {/* Validity & Dates */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold border-b pb-2">3. Expiry Information</h3>
-          <div className="grid md:grid-cols-2 gap-4 items-start">
+          <h3 className="text-lg font-semibold border-b pb-2">3. Validity & Dates</h3>
+          <div className="grid md:grid-cols-3 gap-4 items-start">
             <div className="grid gap-2">
-              <label htmlFor="expiryDate" className="text-sm font-medium">Expiry Date</label>
+              <label htmlFor="startDate" className="text-sm font-medium">License Start Date</label>
+              <input id="startDate" name="startDate" defaultValue={formattedStartDate} type="date" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="expiryDate" className="text-sm font-medium">License End / Expiry Date</label>
               <input id="expiryDate" name="expiryDate" defaultValue={formattedExpiryDate} type="date" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
             </div>
             <div className="flex items-center gap-2 pt-8">
               <input type="checkbox" id="neverExpires" name="neverExpires" defaultChecked={asset.neverExpires} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-              <label htmlFor="neverExpires" className="text-sm font-medium">Perpetual / Never Expires</label>
+              <label htmlFor="neverExpires" className="text-sm font-medium">Never Ending (Permanent)</label>
             </div>
+          </div>
+          <div className="grid gap-2 pt-2">
+            <label htmlFor="description" className="text-sm font-medium">Description / Remarks</label>
+            <textarea id="description" name="description" defaultValue={cleanDescription} rows={3} className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Any additional notes about this software..."></textarea>
           </div>
         </div>
 

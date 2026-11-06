@@ -85,10 +85,26 @@ export default async function SoftwareDetailsPage({ params }: { params: Promise<
               </div>
 
               <div className="flex flex-col pt-2 border-t">
-                <span className="text-muted-foreground text-xs font-semibold">EXPIRY DATE</span>
-                <span className="font-medium mt-1 flex items-center gap-1">
+                <span className="text-muted-foreground text-xs font-semibold">LICENSE START</span>
+                <span className="font-medium mt-1">
+                  {(() => {
+                    const match = asset.description?.match(/\[START_DATE:([\d-]+)\]/);
+                    if (match && match[1]) {
+                      const parts = match[1].split("-");
+                      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    }
+                    return new Date(asset.createdAt).toLocaleDateString();
+                  })()}
+                </span>
+              </div>
+
+              <div className="flex flex-col pt-2 border-t">
+                <span className="text-muted-foreground text-xs font-semibold">LICENSE END</span>
+                <span className="font-medium mt-1 flex items-center gap-1.5">
                   {asset.neverExpires ? (
-                    <><ShieldCheck className="h-4 w-4 text-green-500" /> Perpetual</>
+                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+                      <ShieldCheck className="h-4 w-4 text-emerald-500" /> Never Ending
+                    </span>
                   ) : (
                     asset.expiryDate ? new Date(asset.expiryDate).toLocaleDateString() : '—'
                   )}
