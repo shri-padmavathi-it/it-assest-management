@@ -3,8 +3,20 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { EmployeeSelectDropdown } from "@/components/computers/employee-select-dropdown"
+import { SoftwareSelectMulti } from "@/components/computers/software-select-multi"
 
 export default async function NewComputerPage() {
+  const allSoftware = await prisma.softwareAsset.findMany({
+    orderBy: { name: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      vendor: true,
+      category: true,
+      credentials: true,
+      licenseType: true,
+    }
+  });
 
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-500 pb-12">
@@ -118,6 +130,10 @@ export default async function NewComputerPage() {
                 <option value="ABB">ABB</option>
               </select>
             </div>
+          </div>
+
+          <div className="pt-2 border-t border-border/40">
+            <SoftwareSelectMulti availableSoftware={allSoftware} />
           </div>
 
           <div className="flex items-center gap-2 pt-2">

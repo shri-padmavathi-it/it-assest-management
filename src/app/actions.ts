@@ -75,7 +75,7 @@ export async function addComputer(formData: FormData) {
     status = 'Available'
   }
 
-  await prisma.computer.create({
+  const createdComputer = await prisma.computer.create({
     data: {
       assetTag,
       computerName,
@@ -100,7 +100,47 @@ export async function addComputer(formData: FormData) {
     }
   })
 
+  // Handle selected software assignments
+  const selectedSoftwareIds = (formData.getAll('softwareAssetIds') as string[]).filter(Boolean);
+  const newSoftwareNames = (formData.getAll('newSoftwareNames') as string[]).filter(Boolean);
+
+  for (const rawName of newSoftwareNames) {
+    const name = rawName.trim();
+    if (!name) continue;
+    let asset = await prisma.softwareAsset.findFirst({ where: { name } });
+    if (!asset) {
+      asset = await prisma.softwareAsset.create({
+        data: {
+          name,
+          licenseType: 'Per Device License',
+          category: 'Software',
+          status: 'In Use',
+          neverExpires: true,
+        }
+      });
+    }
+    if (!selectedSoftwareIds.includes(asset.id)) {
+      selectedSoftwareIds.push(asset.id);
+    }
+  }
+
+  for (const softwareAssetId of selectedSoftwareIds) {
+    await prisma.softwareAssignment.create({
+      data: {
+        softwareAssetId,
+        computerId: createdComputer.id,
+        employeeId: currentEmployeeId,
+        status: 'Active'
+      }
+    });
+    await prisma.softwareAsset.update({
+      where: { id: softwareAssetId },
+      data: { status: 'In Use' }
+    });
+  }
+
   revalidatePath('/computers')
+  revalidatePath('/software-licenses')
   revalidatePath('/')
   redirect('/computers')
 }
@@ -447,10 +487,82 @@ export async function editComputer(formData: FormData) {
         performedBy: 'System'
       }
     });
+
+    // Update employeeId on all active software assignments for this computer
+    await prisma.softwareAssignment.updateMany({
+      where: { computerId: id, status: 'Active' },
+      data: { employeeId: newEmployeeId }
+    });
+  }
+
+  // Handle software assignments from form
+  const selectedSoftwareIds = (formData.getAll('softwareAssetIds') as string[]).filter(Boolean);
+  const newSoftwareNames = (formData.getAll('newSoftwareNames') as string[]).filter(Boolean);
+
+  for (const rawName of newSoftwareNames) {
+    const name = rawName.trim();
+    if (!name) continue;
+    let asset = await prisma.softwareAsset.findFirst({ where: { name } });
+    if (!asset) {
+      asset = await prisma.softwareAsset.create({
+        data: {
+          name,
+          licenseType: 'Per Device License',
+          category: 'Software',
+          status: 'In Use',
+          neverExpires: true,
+        }
+      });
+    }
+    if (!selectedSoftwareIds.includes(asset.id)) {
+      selectedSoftwareIds.push(asset.id);
+    }
+  }
+
+  // Current active assignments for this computer
+  const currentAssignments = await prisma.softwareAssignment.findMany({
+    where: { computerId: id, status: 'Active' }
+  });
+  const currentAssignedSoftwareIds = currentAssignments.map(a => a.softwareAssetId);
+
+  // Softwares to remove
+  const toRemove = currentAssignments.filter(a => !selectedSoftwareIds.includes(a.softwareAssetId));
+  for (const assignment of toRemove) {
+    await prisma.softwareAssignment.update({
+      where: { id: assignment.id },
+      data: { status: 'Removed', removedDate: new Date() }
+    });
+    const remainingActive = await prisma.softwareAssignment.count({
+      where: { softwareAssetId: assignment.softwareAssetId, status: 'Active' }
+    });
+    if (remainingActive === 0) {
+      await prisma.softwareAsset.update({
+        where: { id: assignment.softwareAssetId },
+        data: { status: 'Available' }
+      });
+    }
+  }
+
+  // Softwares to add
+  const toAdd = selectedSoftwareIds.filter(swId => !currentAssignedSoftwareIds.includes(swId));
+  for (const softwareAssetId of toAdd) {
+    await prisma.softwareAssignment.create({
+      data: {
+        softwareAssetId,
+        computerId: id,
+        employeeId: newEmployeeId,
+        status: 'Active'
+      }
+    });
+    await prisma.softwareAsset.update({
+      where: { id: softwareAssetId },
+      data: { status: 'In Use' }
+    });
   }
 
   revalidatePath('/computers')
   revalidatePath(`/computers/${id}`)
+  revalidatePath('/software-licenses')
   revalidatePath('/')
   redirect(`/computers/${id}`)
 }

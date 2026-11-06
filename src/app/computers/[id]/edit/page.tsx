@@ -4,20 +4,41 @@ import { ArrowLeft } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { EmployeeSelectDropdown } from "@/components/computers/employee-select-dropdown"
-
+import { SoftwareSelectMulti } from "@/components/computers/software-select-multi"
 import { BackButton } from "@/components/ui/back-button"
 
 export default async function EditComputerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   
-  const computer = await prisma.computer.findUnique({
-    where: { id },
-    include: { currentEmployee: true }
-  });
+  const [computer, allSoftware] = await Promise.all([
+    prisma.computer.findUnique({
+      where: { id },
+      include: {
+        currentEmployee: true,
+        softwareAssignments: {
+          where: { status: 'Active' },
+          select: { softwareAssetId: true }
+        }
+      }
+    }),
+    prisma.softwareAsset.findMany({
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        vendor: true,
+        category: true,
+        credentials: true,
+        licenseType: true,
+      }
+    })
+  ]);
 
   if (!computer) {
     notFound();
   }
+
+  const initialSelectedSoftwareIds = computer.softwareAssignments.map((a) => a.softwareAssetId);
 
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-500 pb-12">
@@ -25,7 +46,7 @@ export default async function EditComputerPage({ params }: { params: Promise<{ i
         <BackButton />
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Edit Computer Profile</h2>
-          <p className="text-muted-foreground">Update hardware details, software, or assignments.</p>
+          <p className="text-muted-foreground">Update hardware details, software and assignments.</p>
         </div>
       </div>
       
@@ -147,6 +168,13 @@ export default async function EditComputerPage({ params }: { params: Promise<{ i
                 )}
               </select>
             </div>
+          </div>
+
+          <div className="pt-2 border-t border-border/40">
+            <SoftwareSelectMulti 
+              availableSoftware={allSoftware} 
+              initialSelectedIds={initialSelectedSoftwareIds} 
+            />
           </div>
 
           <div className="flex items-center gap-2 pt-2">
