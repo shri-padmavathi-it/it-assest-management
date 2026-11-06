@@ -322,6 +322,7 @@ export function SoftwareLicenseList({
                           {isFullyAssigned ? (
                             <Link
                               href={`/software-licenses/${asset.id}/assign`}
+                              prefetch={true}
                               className="px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                               title="Manage assignment"
                             >
@@ -330,6 +331,7 @@ export function SoftwareLicenseList({
                           ) : (
                             <Link
                               href={`/software-licenses/${asset.id}/assign`}
+                              prefetch={true}
                               className="px-2 py-1 text-xs font-semibold text-primary hover:text-primary/90 hover:bg-primary/10 rounded transition-colors"
                               title="Assign license"
                             >

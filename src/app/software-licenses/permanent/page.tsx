@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { SoftwareLicenseList } from "@/components/software-licenses/software-license-list";
 
+export const revalidate = 60;
+
 export default async function PermanentLicensesPage({
   searchParams,
 }: {

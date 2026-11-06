@@ -16,7 +16,12 @@ export default async function AssignSoftwarePage({
     include: { 
       assignments: { 
         where: { status: 'Active' },
-        include: { computer: true, employee: true }
+        include: { 
+          computer: {
+            include: { currentEmployee: true }
+          }, 
+          employee: true 
+        }
       } 
     }
   })

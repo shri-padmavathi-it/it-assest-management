@@ -51,6 +51,7 @@ export function Sidebar() {
           {/* Dashboard */}
           <Link
             href="/"
+            prefetch={true}
             className={`flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-all whitespace-nowrap overflow-hidden ${
               pathname === '/'
                 ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30 font-semibold'
@@ -74,6 +75,7 @@ export function Sidebar() {
           {/* Computers */}
           <Link
             href="/computers"
+            prefetch={true}
             className={`flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-all whitespace-nowrap overflow-hidden ${
               pathname.startsWith('/computers')
                 ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30 font-semibold'
@@ -97,6 +99,7 @@ export function Sidebar() {
           {/* Employees */}
           <Link
             href="/employees"
+            prefetch={true}
             className={`flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-all whitespace-nowrap overflow-hidden ${
               pathname.startsWith('/employees')
                 ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30 font-semibold'
@@ -161,6 +164,7 @@ export function Sidebar() {
                 {/* Permanent Licenses */}
                 <Link
                   href="/software-licenses/permanent"
+                  prefetch={true}
                   className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-all whitespace-nowrap ${
                     pathname === '/software-licenses/permanent'
                       ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/30 font-semibold'
@@ -182,6 +186,7 @@ export function Sidebar() {
                 {/* Subscription Licenses */}
                 <Link
                   href="/software-licenses/subscriptions"
+                  prefetch={true}
                   className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-all whitespace-nowrap ${
                     pathname === '/software-licenses/subscriptions'
                       ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/30 font-semibold'

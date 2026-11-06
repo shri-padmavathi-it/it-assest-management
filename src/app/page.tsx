@@ -2,58 +2,71 @@ import { prisma } from "@/lib/prisma";
 import { Monitor, Key, Users, Package, AlertTriangle, PowerOff, Building2, Building } from "lucide-react";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 
+export const revalidate = 60;
+
 export default async function Dashboard() {
-  // Fetch stats from DB
-  const totalComputers = await prisma.computer.count();
-  const computersInHouse = await prisma.computer.count({
-    where: {
-      OR: [
-        { location: "In-House" },
-        { location: "in-house" },
-        { location: "In House" },
-        { location: "in house" },
-      ]
-    }
-  });
-  const computersABB = await prisma.computer.count({
-    where: {
-      OR: [
-        { location: "ABB" },
-        { location: "abb" },
-        { location: "Abb" },
-      ]
-    }
-  });
-  const computersNotInUse = await prisma.computer.count({ where: { status: "Not In Use" } });
-  const computersUnderRepair = await prisma.computer.count({ where: { status: "Under Repair" } });
-  const computersRetired = await prisma.computer.count({ where: { status: "Retired" } });
-
-  const totalSoftwareAssets = await prisma.softwareAsset.count();
-  const assignedAssets = await prisma.softwareAsset.count({ where: { status: "In Use" } });
-  const availableAssets = await prisma.softwareAsset.count({ where: { status: "Available" } });
-
-  // Calculate expiring soon (less than 30 days)
   const thirtyDaysFromNow = new Date();
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+  const now = new Date();
 
-  const expiringSoonAssets = await prisma.softwareAsset.count({
-    where: {
-      expiryDate: {
-        lte: thirtyDaysFromNow,
-        gt: new Date()
+  // Fetch all stats in parallel in a single roundtrip
+  const [
+    totalComputers,
+    computersInHouse,
+    computersABB,
+    computersNotInUse,
+    computersUnderRepair,
+    computersRetired,
+    totalSoftwareAssets,
+    assignedAssets,
+    availableAssets,
+    expiringSoonAssets,
+    expiredAssets,
+  ] = await Promise.all([
+    prisma.computer.count(),
+    prisma.computer.count({
+      where: {
+        OR: [
+          { location: "In-House" },
+          { location: "in-house" },
+          { location: "In House" },
+          { location: "in house" },
+        ],
       },
-      neverExpires: false
-    }
-  });
-
-  const expiredAssets = await prisma.softwareAsset.count({
-    where: {
-      expiryDate: {
-        lte: new Date()
+    }),
+    prisma.computer.count({
+      where: {
+        OR: [
+          { location: "ABB" },
+          { location: "abb" },
+          { location: "Abb" },
+        ],
       },
-      neverExpires: false
-    }
-  });
+    }),
+    prisma.computer.count({ where: { status: "Not In Use" } }),
+    prisma.computer.count({ where: { status: "Under Repair" } }),
+    prisma.computer.count({ where: { status: "Retired" } }),
+    prisma.softwareAsset.count(),
+    prisma.softwareAsset.count({ where: { status: "In Use" } }),
+    prisma.softwareAsset.count({ where: { status: "Available" } }),
+    prisma.softwareAsset.count({
+      where: {
+        expiryDate: {
+          lte: thirtyDaysFromNow,
+          gt: now,
+        },
+        neverExpires: false,
+      },
+    }),
+    prisma.softwareAsset.count({
+      where: {
+        expiryDate: {
+          lte: now,
+        },
+        neverExpires: false,
+      },
+    }),
+  ]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12 select-none">
