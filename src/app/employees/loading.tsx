@@ -49,20 +49,6 @@ export default function EmployeesLoading() {
           <div className="h-full bg-gradient-to-r from-blue-500 via-primary to-indigo-500 animate-table-loader" />
         </div>
 
-        {/* Centered Loading Badge Animation */}
-        <div className="absolute inset-0 top-[45px] bg-background/30 backdrop-blur-[1px] flex items-center justify-center pointer-events-none z-10">
-          <div className="flex items-center gap-3 px-5 py-3 rounded-full bg-card/95 border border-primary/25 shadow-2xl shadow-primary/10 text-foreground animate-in fade-in zoom-in-95 duration-200">
-            <div className="relative flex items-center justify-center">
-              <div className="absolute h-5 w-5 rounded-full bg-primary/25 animate-ping opacity-75" />
-              <Loader2 className="h-5 w-5 animate-spin text-primary relative z-10" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-foreground/90 tracking-wide">Loading employees...</span>
-              <span className="text-[10px] text-muted-foreground">Fetching records from database</span>
-            </div>
-          </div>
-        </div>
-
         <div className="p-0 overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/50 border-b">

@@ -30,13 +30,6 @@ export default function DashboardLoading() {
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
           <p className="text-muted-foreground mt-1 text-sm">Overview of your IT assets and licenses.</p>
         </div>
-        <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-card/95 border border-primary/25 shadow-md shadow-primary/10 text-foreground">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute h-4 w-4 rounded-full bg-primary/25 animate-ping opacity-75" />
-            <Loader2 className="h-4 w-4 animate-spin text-primary relative z-10" />
-          </div>
-          <span className="text-xs font-semibold text-foreground/90">Updating dashboard...</span>
-        </div>
       </div>
 
       {/* Computers Section */}
