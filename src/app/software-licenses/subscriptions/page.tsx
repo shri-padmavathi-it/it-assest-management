@@ -13,7 +13,7 @@ export default async function SubscriptionLicensesPage({
 
   // Search filter combined with subscription criteria
   const where: any = {
-    licenseType: "Subscription",
+    licenseType: { contains: "Subscription" },
   };
 
   if (query) {
@@ -59,12 +59,12 @@ export default async function SubscriptionLicensesPage({
     }),
     prisma.softwareAsset.count({
       where: {
-        NOT: { licenseType: "Subscription" },
+        NOT: { licenseType: { contains: "Subscription" } },
       },
     }),
     prisma.softwareAsset.count({
       where: {
-        licenseType: "Subscription",
+        licenseType: { contains: "Subscription" },
       },
     }),
   ]);

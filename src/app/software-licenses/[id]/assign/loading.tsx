@@ -3,7 +3,12 @@ import Link from "next/link";
 
 export default function AssignSoftwareLoading() {
   return (
-    <div className="space-y-6 max-w-4xl animate-in fade-in duration-200 pb-12 select-none">
+    <div className="space-y-6 max-w-4xl animate-in fade-in duration-200 pb-12 select-none relative">
+      {/* Animated Top Progress Bar */}
+      <div className="relative h-[2.5px] -mt-2 -mx-4 sm:-mx-8 overflow-hidden bg-muted/40">
+        <div className="h-full bg-gradient-to-r from-blue-500 via-primary to-indigo-500 animate-table-loader" />
+      </div>
+
       {/* Top Header */}
       <div className="flex items-center gap-4">
         <div className="p-2 rounded-full border bg-muted/40 text-muted-foreground">

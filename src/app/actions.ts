@@ -157,7 +157,6 @@ export async function addSoftwareAsset(formData: FormData) {
   const credentials = formData.get('credentials') as string
   const password = formData.get('password') as string
   const expiryDate = formData.get('expiryDate') as string
-  const neverExpires = formData.get('neverExpires') === 'on'
   const startDate = formData.get('startDate') as string
   let description = (formData.get('description') as string) || ''
   if (startDate) {
@@ -167,17 +166,20 @@ export async function addSoftwareAsset(formData: FormData) {
   const allowedInstallationsRaw = formData.get('allowedInstallations') as string
   const allowedInstallations = allowedInstallationsRaw ? parseInt(allowedInstallationsRaw, 10) : 1
 
+  const isSubscription = licenseType.toLowerCase().includes('subscription');
+  const neverExpires = !isSubscription ? true : (formData.get('neverExpires') === 'on');
+
   await prisma.softwareAsset.create({
     data: {
       name,
-      vendor,
-      category,
+      vendor: vendor || null,
+      category: category || null,
       licenseType,
-      credentials,
-      password,
-      expiryDate: expiryDate && !neverExpires ? new Date(expiryDate) : null,
+      credentials: credentials || null,
+      password: password || null,
+      expiryDate: (isSubscription && expiryDate && !neverExpires) ? new Date(expiryDate) : null,
       neverExpires,
-      description,
+      description: description || null,
       allowedInstallations,
       status: 'Available'
     }
@@ -187,7 +189,7 @@ export async function addSoftwareAsset(formData: FormData) {
   revalidatePath('/software-licenses/permanent')
   revalidatePath('/software-licenses/subscriptions')
   revalidatePath('/')
-  if (licenseType === 'Subscription') {
+  if (isSubscription) {
     redirect('/software-licenses/subscriptions')
   } else {
     redirect('/software-licenses/permanent')
@@ -744,13 +746,15 @@ export async function editSoftwareAsset(formData: FormData) {
   const password = formData.get('password') as string;
   const allowedInstallations = parseInt(formData.get('allowedInstallations') as string) || 1;
   const expiryDate = formData.get('expiryDate') as string;
-  const neverExpires = formData.get('neverExpires') === 'on';
   const startDate = formData.get('startDate') as string;
   let description = (formData.get('description') as string) || '';
   description = description.replace(/\[START_DATE:[\d-]+\]\n?/, '').trim();
   if (startDate) {
     description = `[START_DATE:${startDate}]\n${description}`.trim();
   }
+
+  const isSubscription = licenseType.toLowerCase().includes('subscription');
+  const neverExpires = !isSubscription ? true : (formData.get('neverExpires') === 'on');
 
   await prisma.softwareAsset.update({
     where: { id },
@@ -763,7 +767,7 @@ export async function editSoftwareAsset(formData: FormData) {
       password: password || null,
       allowedInstallations,
       description: description || null,
-      expiryDate: (neverExpires || !expiryDate) ? null : new Date(expiryDate),
+      expiryDate: (isSubscription && expiryDate && !neverExpires) ? new Date(expiryDate) : null,
       neverExpires,
     }
   });
@@ -772,6 +776,7 @@ export async function editSoftwareAsset(formData: FormData) {
   revalidatePath('/software-licenses/permanent');
   revalidatePath('/software-licenses/subscriptions');
   revalidatePath(`/software-licenses/${id}`);
+  revalidatePath(`/software-licenses/${id}/assign`);
   revalidatePath('/');
-  redirect(`/software-licenses/${id}`);
+  redirect(isSubscription ? '/software-licenses/subscriptions' : '/software-licenses/permanent');
 }

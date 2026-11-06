@@ -14,7 +14,7 @@ export default async function PermanentLicensesPage({
   // Search filter combined with permanent criteria
   const where: any = {
     NOT: {
-      licenseType: "Subscription",
+      licenseType: { contains: "Subscription" },
     },
   };
 
@@ -62,12 +62,12 @@ export default async function PermanentLicensesPage({
     }),
     prisma.softwareAsset.count({
       where: {
-        NOT: { licenseType: "Subscription" },
+        NOT: { licenseType: { contains: "Subscription" } },
       },
     }),
     prisma.softwareAsset.count({
       where: {
-        licenseType: "Subscription",
+        licenseType: { contains: "Subscription" },
       },
     }),
   ]);

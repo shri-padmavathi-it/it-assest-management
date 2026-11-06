@@ -11,30 +11,56 @@ export default async function AssignSoftwarePage({
 }) {
   const { id } = await params;
 
-  const asset = await prisma.softwareAsset.findUnique({
-    where: { id },
-    include: { 
-      assignments: { 
-        where: { status: 'Active' },
-        include: { 
-          computer: {
-            include: { currentEmployee: true }
-          }, 
-          employee: true 
+  // Fetch asset and computers concurrently for maximum performance
+  const [asset, computers] = await Promise.all([
+    prisma.softwareAsset.findUnique({
+      where: { id },
+      include: { 
+        assignments: { 
+          where: { status: 'Active' },
+          include: { 
+            computer: {
+              select: {
+                id: true,
+                computerName: true,
+                assetTag: true,
+                currentEmployee: {
+                  select: { name: true, employeeId: true }
+                }
+              }
+            }, 
+            employee: {
+              select: { name: true, employeeId: true }
+            }
+          }
+        } 
+      }
+    }),
+    prisma.computer.findMany({
+      orderBy: { computerName: 'asc' },
+      select: {
+        id: true,
+        computerName: true,
+        assetTag: true,
+        brand: true,
+        model: true,
+        currentEmployee: {
+          select: { name: true }
         }
-      } 
-    }
-  })
+      }
+    })
+  ]);
 
   if (!asset) {
-    return <div>Software Asset not found</div>
+    return (
+      <div className="p-8 text-center space-y-3">
+        <h2 className="text-xl font-bold">Software Asset not found</h2>
+        <Link href="/software-licenses/permanent" className="text-primary hover:underline text-sm inline-block">
+          Return to Softwares
+        </Link>
+      </div>
+    );
   }
-
-  // Fetch computers for the dropdown
-  const computers = await prisma.computer.findMany({
-    orderBy: { computerName: 'asc' },
-    include: { currentEmployee: true }
-  })
 
   const serializedComputers = computers.map(c => ({
     id: c.id,
