@@ -60,7 +60,7 @@ export default async function LoginPage({
               id="email"
               name="email"
               type="email"
-              defaultValue="admin@example.com"
+              defaultValue=""
               required
               className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
@@ -73,7 +73,7 @@ export default async function LoginPage({
               id="password"
               name="password"
               type="password"
-              defaultValue="password123"
+              defaultValue=""
               required
               className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />

@@ -152,3 +152,21 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model OfficeAsset {
+  id             String    @id @default(uuid())
+  assetTag       String    @unique
+  name           String
+  category       String    // Monitor, Printer, AC, Scanner, UPS, Other
+  brand          String?
+  model          String?
+  serialNumber   String?
+  location       String?   // In-House SPC, ABB, etc.
+  status         String    @default("Available") // Available, In Use, Under Repair, Retired
+  assignedTo     String?
+  purchaseDate   DateTime?
+  warrantyExpiry DateTime?
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}

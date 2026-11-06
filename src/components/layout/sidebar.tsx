@@ -13,7 +13,8 @@ import {
   ChevronDown, 
   ChevronRight,
   Building2,
-  Building
+  Building,
+  Boxes
 } from "lucide-react"
 
 export function Sidebar() {
@@ -290,6 +291,30 @@ export function Sidebar() {
               </div>
             )}
           </div>
+
+          {/* Office Assets */}
+          <Link
+            href="/office-assets"
+            prefetch={true}
+            className={`flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-all whitespace-nowrap overflow-hidden ${
+              pathname.startsWith('/office-assets')
+                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30 font-semibold'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+            }`}
+          >
+            <div
+              className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-colors ${
+                pathname.startsWith('/office-assets')
+                  ? 'bg-white/20 text-white'
+                  : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+              }`}
+            >
+              <Boxes className="h-4 w-4 shrink-0" />
+            </div>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap">
+              Office Assets
+            </span>
+          </Link>
         </nav>
       </div>
     </aside>

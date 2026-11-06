@@ -786,3 +786,108 @@ export async function editSoftwareAsset(formData: FormData) {
   revalidatePath('/');
   redirect(isSubscription ? '/software-licenses/subscriptions' : '/software-licenses/permanent');
 }
+
+export async function createOfficeAsset(formData: FormData) {
+  const assetTag = (formData.get('assetTag') as string)?.trim();
+  const name = (formData.get('name') as string)?.trim();
+  const category = (formData.get('category') as string)?.trim() || 'Other';
+  const brand = (formData.get('brand') as string)?.trim() || null;
+  const model = (formData.get('model') as string)?.trim() || null;
+  const serialNumber = (formData.get('serialNumber') as string)?.trim() || null;
+  const location = (formData.get('location') as string)?.trim() || null;
+  const status = (formData.get('status') as string)?.trim() || 'Available';
+  const assignedTo = (formData.get('assignedTo') as string)?.trim() || null;
+  const purchaseDateStr = formData.get('purchaseDate') as string;
+  const warrantyExpiryStr = formData.get('warrantyExpiry') as string;
+  const notes = (formData.get('notes') as string)?.trim() || null;
+
+  const purchaseDate = purchaseDateStr ? new Date(purchaseDateStr) : null;
+  const warrantyExpiry = warrantyExpiryStr ? new Date(warrantyExpiryStr) : null;
+
+  try {
+    await (prisma as any).officeAsset.create({
+      data: {
+        assetTag,
+        name,
+        category,
+        brand,
+        model,
+        serialNumber,
+        location,
+        status,
+        assignedTo,
+        purchaseDate,
+        warrantyExpiry,
+        notes,
+      },
+    });
+  } catch (error) {
+    console.error('Error creating office asset:', error);
+    throw new Error('Failed to create office asset. Please check if asset tag is unique or database schema is up to date.');
+  }
+
+  revalidatePath('/office-assets');
+  revalidatePath('/');
+  redirect('/office-assets');
+}
+
+export async function editOfficeAsset(formData: FormData) {
+  const id = formData.get('id') as string;
+  const assetTag = (formData.get('assetTag') as string)?.trim();
+  const name = (formData.get('name') as string)?.trim();
+  const category = (formData.get('category') as string)?.trim() || 'Other';
+  const brand = (formData.get('brand') as string)?.trim() || null;
+  const model = (formData.get('model') as string)?.trim() || null;
+  const serialNumber = (formData.get('serialNumber') as string)?.trim() || null;
+  const location = (formData.get('location') as string)?.trim() || null;
+  const status = (formData.get('status') as string)?.trim() || 'Available';
+  const assignedTo = (formData.get('assignedTo') as string)?.trim() || null;
+  const purchaseDateStr = formData.get('purchaseDate') as string;
+  const warrantyExpiryStr = formData.get('warrantyExpiry') as string;
+  const notes = (formData.get('notes') as string)?.trim() || null;
+
+  const purchaseDate = purchaseDateStr ? new Date(purchaseDateStr) : null;
+  const warrantyExpiry = warrantyExpiryStr ? new Date(warrantyExpiryStr) : null;
+
+  try {
+    await (prisma as any).officeAsset.update({
+      where: { id },
+      data: {
+        assetTag,
+        name,
+        category,
+        brand,
+        model,
+        serialNumber,
+        location,
+        status,
+        assignedTo,
+        purchaseDate,
+        warrantyExpiry,
+        notes,
+      },
+    });
+  } catch (error) {
+    console.error('Error updating office asset:', error);
+    throw new Error('Failed to update office asset.');
+  }
+
+  revalidatePath('/office-assets');
+  revalidatePath(`/office-assets/${id}`);
+  revalidatePath('/');
+  redirect('/office-assets');
+}
+
+export async function deleteOfficeAsset(id: string) {
+  try {
+    await (prisma as any).officeAsset.delete({
+      where: { id },
+    });
+  } catch (error) {
+    console.error('Error deleting office asset:', error);
+    throw new Error('Failed to delete office asset.');
+  }
+
+  revalidatePath('/office-assets');
+  revalidatePath('/');
+}

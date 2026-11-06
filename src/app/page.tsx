@@ -1,5 +1,20 @@
 import { prisma } from "@/lib/prisma";
-import { Monitor, Key, Users, Package, AlertTriangle, PowerOff, Building2, Building } from "lucide-react";
+import { 
+  Monitor, 
+  Key, 
+  Users, 
+  Package, 
+  AlertTriangle, 
+  PowerOff, 
+  Building2, 
+  Building,
+  Boxes,
+  Tv,
+  Printer,
+  Wind,
+  Wrench
+} from "lucide-react";
+import Link from "next/link";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
@@ -75,6 +90,44 @@ export default async function Dashboard() {
     }),
   ]);
 
+  // Office Assets stats (defensively fetched in case table is being pushed)
+  let totalOfficeAssets = 0;
+  let officeMonitors = 0;
+  let officePrinters = 0;
+  let officeACs = 0;
+  let officeRepair = 0;
+
+  try {
+    const [totalOA, monitorsOA, printersOA, acsOA, repairOA] = await Promise.all([
+      (prisma as any).officeAsset.count(),
+      (prisma as any).officeAsset.count({ where: { category: { contains: "Monitor" } } }),
+      (prisma as any).officeAsset.count({
+        where: {
+          OR: [
+            { category: { contains: "Printer" } },
+            { category: { contains: "Scanner" } },
+          ],
+        },
+      }),
+      (prisma as any).officeAsset.count({
+        where: {
+          OR: [
+            { category: { contains: "AC" } },
+            { category: { contains: "Air" } },
+          ],
+        },
+      }),
+      (prisma as any).officeAsset.count({ where: { status: "Under Repair" } }),
+    ]);
+    totalOfficeAssets = totalOA;
+    officeMonitors = monitorsOA;
+    officePrinters = printersOA;
+    officeACs = acsOA;
+    officeRepair = repairOA;
+  } catch {
+    // Graceful fallback if table is pending push
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12 select-none">
       <div>
@@ -110,6 +163,30 @@ export default async function Dashboard() {
           <StatCard title="Available" value={availableAssets} delay={350} icon={Key} accent="green" />
           <StatCard title="Expiring Soon" value={expiringSoonAssets} delay={450} icon={AlertTriangle} accent="orange" />
           <StatCard title="Expired" value={expiredAssets} delay={550} icon={AlertTriangle} accent="red" />
+        </div>
+      </div>
+
+      {/* Office Assets Section */}
+      <div className="space-y-5 pt-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold flex items-center gap-2 text-foreground/80">
+            <Boxes className="h-5 w-5 text-primary" />
+            Office Assets
+          </h3>
+          <Link
+            href="/office-assets"
+            prefetch={true}
+            className="text-xs font-semibold text-primary hover:underline"
+          >
+            View all office assets &rarr;
+          </Link>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <StatCard title="Total Assets" value={totalOfficeAssets} delay={200} icon={Boxes} accent="default" />
+          <StatCard title="Monitors" value={officeMonitors} delay={300} icon={Tv} accent="blue" />
+          <StatCard title="Printers" value={officePrinters} delay={400} icon={Printer} accent="green" />
+          <StatCard title="Air Conditioners" value={officeACs} delay={500} icon={Wind} accent="slate" />
+          <StatCard title="Under Repair" value={officeRepair} delay={600} icon={Wrench} accent="orange" />
         </div>
       </div>
     </div>
