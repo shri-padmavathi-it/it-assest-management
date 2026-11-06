@@ -143,9 +143,12 @@ export async function addComputer(formData: FormData) {
   }
 
   revalidatePath('/computers')
+  revalidatePath('/computers/in-house')
+  revalidatePath('/computers/abb')
   revalidatePath('/software-licenses')
   revalidatePath('/')
-  redirect('/computers')
+  const isABB = location && location.toUpperCase().includes('ABB');
+  redirect(isABB ? '/computers/abb' : '/computers/in-house')
 }
 
 export async function addSoftwareAsset(formData: FormData) {
@@ -346,6 +349,9 @@ export async function importComputersFromCSV(formData: FormData) {
   }
 
   revalidatePath('/computers');
+  revalidatePath('/computers/in-house');
+  revalidatePath('/computers/abb');
+  revalidatePath('/');
   return { success: true, count: successCount };
 }
 

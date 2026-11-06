@@ -216,10 +216,27 @@ export function EmployeesTableClient({
               <span>Previous</span>
             </button>
 
-            {/* Numeric page pills */}
+            {/* Numeric page pills with smart ellipsis */}
             <div className="flex items-center gap-1">
               {Array.from({ length: totalPages }).map((_, idx) => {
                 const pageNum = idx + 1;
+                // Only show around current page with ellipsis if many pages
+                if (
+                  totalPages > 7 &&
+                  pageNum !== 1 &&
+                  pageNum !== totalPages &&
+                  Math.abs(pageNum - safePage) > 1
+                ) {
+                  if (pageNum === 2 || pageNum === totalPages - 1) {
+                    return (
+                      <span key={pageNum} className="h-7 w-7 flex items-center justify-center text-xs text-muted-foreground select-none">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                }
+
                 return (
                   <button
                     key={pageNum}

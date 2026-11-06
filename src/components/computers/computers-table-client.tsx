@@ -184,9 +184,9 @@ export function ComputersTableClient({
                         {comp.location ? (
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                              comp.location === "In-House"
+                              comp.location.toLowerCase().includes("in-house") || comp.location.toUpperCase().includes("spc")
                                 ? "bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20"
-                                : comp.location === "ABB"
+                                : comp.location.toUpperCase().includes("abb")
                                 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
                                 : "bg-muted text-muted-foreground border"
                             }`}
@@ -256,7 +256,11 @@ export function ComputersTableClient({
                   Math.abs(pageNum - safePage) > 1
                 ) {
                   if (pageNum === 2 || pageNum === totalPages - 1) {
-                    return <span key={pageNum} className="px-1 text-xs text-muted-foreground">...</span>;
+                    return (
+                      <span key={pageNum} className="h-7 w-7 flex items-center justify-center text-xs text-muted-foreground select-none">
+                        ...
+                      </span>
+                    );
                   }
                   return null;
                 }

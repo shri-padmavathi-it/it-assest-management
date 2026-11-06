@@ -2,10 +2,16 @@
 
 import { TableSearch } from "@/components/ui/table-search";
 
-export function ComputerSearch({ initialQuery = "" }: { initialQuery?: string }) {
+export function ComputerSearch({ 
+  initialQuery = "",
+  basePath = "/computers" 
+}: { 
+  initialQuery?: string;
+  basePath?: string;
+}) {
   return (
     <TableSearch
-      basePath="/computers"
+      basePath={basePath}
       placeholder="Search computers, user..."
       initialQuery={initialQuery}
     />

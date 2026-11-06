@@ -161,10 +161,13 @@ export default async function EditComputerPage({ params }: { params: Promise<{ i
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-all duration-300"
               >
                 <option value="">Select Location</option>
-                <option value="In-House">In-House</option>
+                <option value="In-House SPC">In-House SPC</option>
                 <option value="ABB">ABB</option>
-                {computer.location && !['In-House', 'ABB'].includes(computer.location) && (
+                {computer.location && !['In-House', 'In-House SPC', 'ABB'].includes(computer.location) && (
                   <option value={computer.location}>{computer.location}</option>
+                )}
+                {computer.location === 'In-House' && (
+                  <option value="In-House">In-House (Legacy)</option>
                 )}
               </select>
             </div>

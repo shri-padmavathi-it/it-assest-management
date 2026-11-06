@@ -6,9 +6,10 @@ import { Monitor } from "lucide-react"
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; callbackUrl?: string }>
 }) {
   const resolvedParams = await searchParams;
+  const redirectTo = resolvedParams.callbackUrl || "/";
 
   return (
     <div className="flex h-screen w-full items-center justify-center transition-colors duration-500 absolute inset-0 z-50 bg-mesh bg-background">
@@ -40,14 +41,17 @@ export default async function LoginPage({
                   (("type" in error && (error as any).type === "CredentialsSignin") ||
                     ("name" in error && (error as any).name === "CredentialsSignin")))
               ) {
-                redirect("/login?error=CredentialsSignin")
+                const callbackParam = resolvedParams.callbackUrl
+                  ? `&callbackUrl=${encodeURIComponent(resolvedParams.callbackUrl)}`
+                  : ""
+                redirect(`/login?error=CredentialsSignin${callbackParam}`)
               }
               throw error
             }
           }}
           className="w-full space-y-4"
         >
-          <input type="hidden" name="redirectTo" value="/" />
+          <input type="hidden" name="redirectTo" value={redirectTo} />
           <div className="space-y-2">
             <label className="text-sm font-medium leading-none" htmlFor="email">
               Email

@@ -11,7 +11,9 @@ import {
   Key, 
   RefreshCw, 
   ChevronDown, 
-  ChevronRight
+  ChevronRight,
+  Building2,
+  Building
 } from "lucide-react"
 
 export function Sidebar() {
@@ -20,15 +22,30 @@ export function Sidebar() {
   // Check if current route is within software licenses
   const isSoftwareActive = pathname.startsWith('/software-licenses') || pathname.startsWith('/softwares')
   
+  // Check if current route is within computers
+  const isComputersActive = pathname.startsWith('/computers')
+  const [isABB, setIsABB] = useState(false)
+
   // State for accordion collapse / expand
   const [isSoftwareOpen, setIsSoftwareOpen] = useState(true)
+  const [isComputersOpen, setIsComputersOpen] = useState(true)
 
-  // Keep accordion open if user navigates to a software route
+  // Keep accordion open if user navigates to a software or computer route
   useEffect(() => {
     if (isSoftwareActive) {
       setIsSoftwareOpen(true)
     }
   }, [isSoftwareActive])
+
+  useEffect(() => {
+    if (isComputersActive) {
+      setIsComputersOpen(true)
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search)
+        setIsABB(urlParams.get("location")?.toLowerCase() === "abb")
+      }
+    }
+  }, [isComputersActive, pathname])
 
   return (
     <aside className="group flex h-full w-[4.5rem] hover:w-64 flex-col border-r border-border/60 bg-card/70 backdrop-blur-xl text-card-foreground z-30 transition-all duration-300 ease-in-out overflow-x-hidden select-none shrink-0">
@@ -72,29 +89,95 @@ export function Sidebar() {
             </span>
           </Link>
 
-          {/* Computers */}
-          <Link
-            href="/computers"
-            prefetch={true}
-            className={`flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-all whitespace-nowrap overflow-hidden ${
-              pathname.startsWith('/computers')
-                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30 font-semibold'
-                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-            }`}
-          >
-            <div
-              className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-colors ${
-                pathname.startsWith('/computers')
-                  ? 'bg-white/20 text-white'
-                  : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+          {/* Computers Accordion */}
+          <div className="pt-0.5">
+            <button
+              type="button"
+              onClick={() => setIsComputersOpen((prev) => !prev)}
+              className={`w-full flex items-center justify-between rounded-xl px-2.5 py-2 text-sm font-medium transition-all cursor-pointer whitespace-nowrap overflow-hidden ${
+                isComputersActive
+                  ? 'bg-muted/60 text-foreground font-semibold'
+                  : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
               }`}
             >
-              <Monitor className="h-4 w-4 shrink-0" />
-            </div>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap">
-              Computers
-            </span>
-          </Link>
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-colors ${
+                    isComputersActive
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+                  }`}
+                >
+                  <Monitor className="h-4 w-4 shrink-0" />
+                </div>
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap">
+                  Computers
+                </span>
+              </div>
+              <div
+                className={`p-1 rounded-md transition-all duration-200 opacity-0 group-hover:opacity-100 delay-75 shrink-0 ${
+                  isComputersOpen ? 'text-foreground' : 'text-muted-foreground/70'
+                }`}
+              >
+                {isComputersOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </div>
+            </button>
+
+            {/* Sub-menu with smooth expansion when accordion is open AND sidebar is hovered */}
+            {isComputersOpen && (
+              <div className="mt-1.5 space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100 pl-3 overflow-hidden">
+                {/* In-House SPC */}
+                <Link
+                  href="/computers?location=in-house"
+                  onClick={() => setIsABB(false)}
+                  prefetch={true}
+                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-all whitespace-nowrap ${
+                    isComputersActive && !isABB
+                      ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/30 font-semibold'
+                      : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                  }`}
+                >
+                  <div
+                    className={`flex items-center justify-center w-6 h-6 rounded-md shrink-0 transition-colors ${
+                      isComputersActive && !isABB
+                        ? 'bg-white/20 text-white'
+                        : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+                    }`}
+                  >
+                    <Building2 className="h-3.5 w-3.5 shrink-0" />
+                  </div>
+                  <span className="flex-1 whitespace-nowrap">In-House SPC</span>
+                </Link>
+
+                {/* ABB */}
+                <Link
+                  href="/computers?location=abb"
+                  onClick={() => setIsABB(true)}
+                  prefetch={true}
+                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-all whitespace-nowrap ${
+                    isComputersActive && isABB
+                      ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/30 font-semibold'
+                      : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                  }`}
+                >
+                  <div
+                    className={`flex items-center justify-center w-6 h-6 rounded-md shrink-0 transition-colors ${
+                      isComputersActive && isABB
+                        ? 'bg-white/20 text-white'
+                        : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+                    }`}
+                  >
+                    <Building className="h-3.5 w-3.5 shrink-0" />
+                  </div>
+                  <span className="flex-1 whitespace-nowrap">ABB</span>
+                </Link>
+              </div>
+            )}
+          </div>
 
           {/* Employees */}
           <Link

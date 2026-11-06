@@ -10,47 +10,91 @@ export const revalidate = 60;
 export default async function ComputersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; location?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
   const initialPage = parseInt(resolvedSearchParams.page || "1");
   const query = (resolvedSearchParams.q || "").trim();
+  const locationParam = (resolvedSearchParams.location || "in-house").toLowerCase();
+  const isABB = locationParam === "abb";
 
-  const where = query
+  // Location filter: ABB vs In-House SPC (all non-ABB machines)
+  const locationCondition = isABB
     ? {
         OR: [
-          { assetTag: { contains: query } },
-          { computerName: { contains: query } },
-          { brand: { contains: query } },
-          { model: { contains: query } },
-          { serialNumber: { contains: query } },
-          { location: { contains: query } },
-          { department: { contains: query } },
-          { processor: { contains: query } },
-          { operatingSystem: { contains: query } },
-          { status: { contains: query } },
-          { macId: { contains: query } },
-          { currentEmployee: { name: { contains: query } } },
-          { currentEmployee: { employeeId: { contains: query } } },
-          { currentEmployee: { email: { contains: query } } },
+          { location: { contains: "ABB" } },
+          { location: { contains: "abb" } },
         ],
       }
-    : {};
+    : {
+        NOT: {
+          OR: [
+            { location: { contains: "ABB" } },
+            { location: { contains: "abb" } },
+          ],
+        },
+      };
 
-  const computers = await prisma.computer.findMany({
-    where,
-    include: {
-      currentEmployee: true,
-    },
-    orderBy: { assetTag: "asc" },
-  });
+  const where: any = query
+    ? {
+        AND: [
+          locationCondition,
+          {
+            OR: [
+              { assetTag: { contains: query } },
+              { computerName: { contains: query } },
+              { brand: { contains: query } },
+              { model: { contains: query } },
+              { serialNumber: { contains: query } },
+              { location: { contains: query } },
+              { department: { contains: query } },
+              { processor: { contains: query } },
+              { operatingSystem: { contains: query } },
+              { status: { contains: query } },
+              { macId: { contains: query } },
+              { currentEmployee: { name: { contains: query } } },
+              { currentEmployee: { employeeId: { contains: query } } },
+              { currentEmployee: { email: { contains: query } } },
+            ],
+          },
+        ],
+      }
+    : locationCondition;
+
+  const [computers, totalInHouse, totalABB] = await Promise.all([
+    prisma.computer.findMany({
+      where,
+      include: {
+        currentEmployee: true,
+      },
+      orderBy: { assetTag: "asc" },
+    }),
+    prisma.computer.count({
+      where: {
+        NOT: {
+          OR: [
+            { location: { contains: "ABB" } },
+            { location: { contains: "abb" } },
+          ],
+        },
+      },
+    }),
+    prisma.computer.count({
+      where: {
+        OR: [
+          { location: { contains: "ABB" } },
+          { location: { contains: "abb" } },
+        ],
+      },
+    }),
+  ]);
 
   const serializedComputers = computers.map((c) => ({
     id: c.id,
     assetTag: c.assetTag,
     computerName: c.computerName,
     status: c.status,
-    location: c.location,
+    location: c.location || (isABB ? "ABB" : "In-House SPC"),
     currentEmployee: c.currentEmployee
       ? {
           id: c.currentEmployee.id,
@@ -60,18 +104,32 @@ export default async function ComputersPage({
       : null,
   }));
 
+  const totalCount = isABB ? totalABB : totalInHouse;
+  const basePath = isABB ? "/computers?location=abb" : "/computers?location=in-house";
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Computers</h2>
-          <p className="text-muted-foreground">Manage all company computers and laptops.</p>
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-3xl font-bold tracking-tight">
+              {isABB ? "ABB Computers" : "In-House SPC Computers"}
+            </h2>
+            <span className="text-xs bg-primary/10 text-primary font-bold px-2.5 py-0.5 rounded-full border border-primary/20">
+              {totalCount} Items
+            </span>
+          </div>
+          <p className="text-muted-foreground mt-1">
+            {isABB
+              ? "Manage company computers and laptops deployed at ABB."
+              : "Manage company computers and workstations located In-House (SPC)."}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <ComputerSearch initialQuery={query} />
+          <ComputerSearch initialQuery={query} basePath={basePath} />
           <ImportCSVButton />
           <Link
-            href="/computers/new"
+            href={`/computers/new?location=${isABB ? "abb" : "in-house"}`}
             className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs"
           >
             <Plus className="h-4 w-4" />
@@ -90,7 +148,7 @@ export default async function ComputersPage({
               {serializedComputers.length} {serializedComputers.length === 1 ? "computer" : "computers"} found
             </span>
           </div>
-          <Link href="/computers" className="text-xs text-primary hover:underline font-medium">
+          <Link href={basePath} className="text-xs text-primary hover:underline font-medium">
             Clear search
           </Link>
         </div>

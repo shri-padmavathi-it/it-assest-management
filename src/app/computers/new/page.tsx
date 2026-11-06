@@ -5,7 +5,15 @@ import { prisma } from "@/lib/prisma"
 import { EmployeeSelectDropdown } from "@/components/computers/employee-select-dropdown"
 import { SoftwareSelectMulti } from "@/components/computers/software-select-multi"
 
-export default async function NewComputerPage() {
+export default async function NewComputerPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ location?: string }>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const isABB = resolvedSearchParams?.location?.toLowerCase() === "abb";
+  const backHref = isABB ? "/computers/abb" : "/computers/in-house";
+
   const allSoftware = await prisma.softwareAsset.findMany({
     orderBy: { name: 'asc' },
     select: {
@@ -21,12 +29,18 @@ export default async function NewComputerPage() {
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-500 pb-12">
       <div className="flex items-center gap-4">
-        <Link href="/computers" className="p-2 hover:bg-muted rounded-full transition-colors">
+        <Link href={backHref} className="p-2 hover:bg-muted rounded-full transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Add Computer</h2>
-          <p className="text-muted-foreground">Register a new company computer with hardware details.</p>
+          <h2 className="text-3xl font-bold tracking-tight">
+            {isABB ? "Add Computer (ABB)" : "Add Computer (In-House SPC)"}
+          </h2>
+          <p className="text-muted-foreground">
+            {isABB 
+              ? "Register a new computer or laptop deployed at ABB."
+              : "Register a new company computer or workstation located In-House (SPC)."}
+          </p>
         </div>
       </div>
       
@@ -124,9 +138,13 @@ export default async function NewComputerPage() {
             </div>
             <div className="grid gap-2">
               <label htmlFor="location" className="text-sm font-medium">Location</label>
-              <select id="location" name="location" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-all duration-300">
-                <option value="">Select Location</option>
-                <option value="In-House">In-House</option>
+              <select 
+                id="location" 
+                name="location" 
+                defaultValue={isABB ? "ABB" : "In-House SPC"}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-all duration-300"
+              >
+                <option value="In-House SPC">In-House SPC</option>
                 <option value="ABB">ABB</option>
               </select>
             </div>

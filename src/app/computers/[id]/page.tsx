@@ -1,13 +1,17 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { ArrowLeft, Monitor, ShieldCheck, User } from "lucide-react"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { AssignComputerModal } from "@/components/computers/assign-computer-modal"
 
 import { BackButton } from "@/components/ui/back-button"
 
 export default async function ComputerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+
+  if (id === 'in-house' || id === 'abb') {
+    redirect(`/computers?location=${id}`);
+  }
 
   const computer = await prisma.computer.findUnique({
     where: { id },
