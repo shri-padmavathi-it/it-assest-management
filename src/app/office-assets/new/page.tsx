@@ -6,9 +6,16 @@ export const metadata = {
   title: "Add Office Asset | IT Asset Manager",
 };
 
-export default function NewOfficeAssetPage() {
+export default async function NewOfficeAssetPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ category?: string }>;
+}) {
+  const resolved = await searchParams;
+  const categoryParam = resolved?.category || "Monitor";
+
   return (
-    <div className="space-y-6 max-w-4xl animate-in fade-in duration-300 pb-12">
+    <div className="space-y-6 max-w-3xl animate-in fade-in duration-300 pb-12 select-none">
       <div className="flex items-center gap-3">
         <Link
           href="/office-assets"
@@ -27,8 +34,7 @@ export default function NewOfficeAssetPage() {
         </div>
       </div>
 
-      <OfficeAssetForm isEdit={false} />
+      <OfficeAssetForm isEdit={false} initialCategory={categoryParam} />
     </div>
   );
 }
-

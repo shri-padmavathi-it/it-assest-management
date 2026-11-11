@@ -27,24 +27,20 @@ export function Sidebar() {
   const isComputersActive = pathname.startsWith('/computers')
   const [isABB, setIsABB] = useState(false)
 
-  // State for accordion collapse / expand
-  const [isSoftwareOpen, setIsSoftwareOpen] = useState(true)
-  const [isComputersOpen, setIsComputersOpen] = useState(true)
+  // State for accordion collapse / expand - initially collapsed (closed) as in Image 2
+  const [isSoftwareOpen, setIsSoftwareOpen] = useState(false)
+  const [isComputersOpen, setIsComputersOpen] = useState(false)
 
-  // Keep accordion open if user navigates to a software or computer route
+  // Sync accordion open state when user navigates into or out of computer / software routes
   useEffect(() => {
-    if (isSoftwareActive) {
-      setIsSoftwareOpen(true)
-    }
+    setIsSoftwareOpen(isSoftwareActive)
   }, [isSoftwareActive])
 
   useEffect(() => {
-    if (isComputersActive) {
-      setIsComputersOpen(true)
-      if (typeof window !== "undefined") {
-        const urlParams = new URLSearchParams(window.location.search)
-        setIsABB(urlParams.get("location")?.toLowerCase() === "abb")
-      }
+    setIsComputersOpen(isComputersActive)
+    if (isComputersActive && typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search)
+      setIsABB(urlParams.get("location")?.toLowerCase() === "abb")
     }
   }, [isComputersActive, pathname])
 
