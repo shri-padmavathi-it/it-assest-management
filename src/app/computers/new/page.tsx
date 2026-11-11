@@ -37,15 +37,15 @@ export default async function NewComputerPage({
             {isABB ? "Add Computer (ABB)" : "Add Computer (In-House SPC)"}
           </h2>
           <p className="text-muted-foreground">
-            {isABB 
+            {isABB
               ? "Register a new computer or laptop deployed at ABB."
               : "Register a new company computer or workstation located In-House (SPC)."}
           </p>
         </div>
       </div>
-      
+
       <form action={addComputer} className="rounded-md border bg-card text-card-foreground shadow-sm p-6 space-y-8">
-        
+
         {/* Basic Details Section */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold border-b pb-2">1. Basic Information</h3>
@@ -119,7 +119,7 @@ export default async function NewComputerPage({
               <input id="office365Login" name="office365Login" type="text" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="e.g. user@company.com" />
             </div>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <label htmlFor="currentEmployeeId" className="text-sm font-medium">Assigned User</label>
@@ -138,9 +138,9 @@ export default async function NewComputerPage({
             </div>
             <div className="grid gap-2">
               <label htmlFor="location" className="text-sm font-medium">Location</label>
-              <select 
-                id="location" 
-                name="location" 
+              <select
+                id="location"
+                name="location"
                 defaultValue={isABB ? "ABB" : "In-House SPC"}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-all duration-300"
               >
@@ -180,7 +180,7 @@ export default async function NewComputerPage({
               <input id="complaints" name="complaints" type="text" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="e.g. Battery drains quickly" />
             </div>
           </div>
-          
+
           <div className="grid gap-2">
             <label htmlFor="notes" className="text-sm font-medium">Remarks (Notes)</label>
             <textarea id="notes" name="notes" rows={3} className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Any additional notes about this machine..."></textarea>

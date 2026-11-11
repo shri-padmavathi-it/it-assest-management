@@ -15,9 +15,13 @@ import {
   Calendar, 
   UserCheck, 
   Tag, 
-  FileText 
+  FileText,
+  Wrench,
+  Network,
+  Layers
 } from "lucide-react";
 import { deleteOfficeAsset } from "@/app/actions";
+import { EditOfficeAssetModal } from "@/components/office-assets/edit-office-asset-modal";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -39,6 +43,21 @@ export default async function OfficeAssetDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  // Parse custom dynamic specs from notes
+  let specs: Record<string, any> = {};
+  let cleanNotes = asset.notes || "";
+  if (asset.notes) {
+    const match = asset.notes.match(/\[SPECS_JSON:(.*?)\]\n?/);
+    if (match) {
+      try {
+        specs = JSON.parse(match[1]);
+        cleanNotes = asset.notes.replace(match[0], "").trim();
+      } catch {
+        // ignore
+      }
+    }
+  }
+
   const getCategoryIcon = (category: string) => {
     const c = category?.toLowerCase() || "";
     if (c.includes("monitor")) return <Tv className="h-6 w-6 text-blue-500" />;
@@ -48,7 +67,7 @@ export default async function OfficeAssetDetailPage({ params }: PageProps) {
     return <Boxes className="h-6 w-6 text-primary" />;
   };
 
-  const formatDate = (date: Date | null) => {
+  const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return "—";
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -56,6 +75,11 @@ export default async function OfficeAssetDetailPage({ params }: PageProps) {
       day: "numeric",
     });
   };
+
+  const isMonitor = asset.category?.toLowerCase().includes("monitor");
+  const isPrinter = asset.category?.toLowerCase().includes("printer");
+  const isAC = asset.category?.toLowerCase().includes("ac") || asset.category?.toLowerCase().includes("air");
+  const isUPS = asset.category?.toLowerCase().includes("ups") || asset.category?.toLowerCase().includes("power");
 
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-300 pb-12 select-none">
@@ -95,13 +119,21 @@ export default async function OfficeAssetDetailPage({ params }: PageProps) {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
-          <Link
-            href={`/office-assets/${asset.id}/edit`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition-all cursor-pointer"
-          >
-            <Edit2 className="h-3.5 w-3.5" />
-            Edit
-          </Link>
+          <EditOfficeAssetModal
+            asset={{
+              ...asset,
+              purchaseDate: asset.purchaseDate ? asset.purchaseDate.toISOString() : null,
+              warrantyExpiry: asset.warrantyExpiry ? asset.warrantyExpiry.toISOString() : null,
+              createdAt: asset.createdAt ? asset.createdAt.toISOString() : null,
+              updatedAt: asset.updatedAt ? asset.updatedAt.toISOString() : null,
+            }}
+            trigger={
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition-all cursor-pointer">
+                <Edit2 className="h-3.5 w-3.5" />
+                Edit
+              </span>
+            }
+          />
 
           <form action={deleteOfficeAsset.bind(null, asset.id)}>
             <button
@@ -215,19 +247,127 @@ export default async function OfficeAssetDetailPage({ params }: PageProps) {
         </div>
       </div>
 
+      {/* DYNAMIC CATEGORY-SPECIFIC DETAILS CARD */}
+      {Object.keys(specs).length > 0 && (
+        <div className="bg-card/70 backdrop-blur-xl border border-primary/20 rounded-2xl p-6 shadow-xs space-y-4">
+          <h2 className="text-sm font-bold text-foreground flex items-center gap-2 border-b border-border/50 pb-2">
+            <Layers className="h-4 w-4 text-primary" />
+            {isMonitor
+              ? "Display & Screen Specifications"
+              : isPrinter
+              ? "Printer, Cartridge & Network Configuration"
+              : isAC
+              ? "Cooling & Maintenance Record"
+              : isUPS
+              ? "Power & Battery Configuration"
+              : "Category Specifics"}
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+            {/* Monitor Specs */}
+            {specs.screenSize && (
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                <span className="text-muted-foreground text-[11px] block">Screen Size</span>
+                <span className="font-semibold text-foreground text-sm mt-0.5 block">{specs.screenSize}</span>
+              </div>
+            )}
+            {specs.resolution && (
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                <span className="text-muted-foreground text-[11px] block">Resolution</span>
+                <span className="font-semibold text-foreground text-sm mt-0.5 block">{specs.resolution}</span>
+              </div>
+            )}
+            {specs.displayPorts && (
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/40 sm:col-span-2 md:col-span-1">
+                <span className="text-muted-foreground text-[11px] block">Video Ports</span>
+                <span className="font-semibold text-foreground text-xs mt-0.5 block">{specs.displayPorts}</span>
+              </div>
+            )}
+
+            {/* Printer Specs */}
+            {specs.tonerModel && (
+              <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                <span className="text-purple-600 dark:text-purple-400 text-[11px] font-medium block">Toner / Cartridge Model</span>
+                <span className="font-mono font-bold text-foreground text-sm mt-0.5 block">{specs.tonerModel}</span>
+              </div>
+            )}
+            {specs.printType && (
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                <span className="text-muted-foreground text-[11px] block">Print Capability</span>
+                <span className="font-semibold text-foreground text-sm mt-0.5 block">{specs.printType}</span>
+              </div>
+            )}
+            {specs.printerIp && (
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                <span className="text-muted-foreground text-[11px] block">Printer IP Address</span>
+                <span className="font-mono font-semibold text-foreground text-sm mt-0.5 block">{specs.printerIp}</span>
+              </div>
+            )}
+            {specs.connectionType && (
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                <span className="text-muted-foreground text-[11px] block">Connection Method</span>
+                <span className="font-semibold text-foreground text-sm mt-0.5 block">{specs.connectionType}</span>
+              </div>
+            )}
+
+            {/* Air Conditioner Specs */}
+            {specs.tonnage && (
+              <div className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/20">
+                <span className="text-teal-600 dark:text-teal-400 text-[11px] font-medium block">Cooling Capacity</span>
+                <span className="font-bold text-foreground text-sm mt-0.5 block">{specs.tonnage}</span>
+              </div>
+            )}
+            {specs.acType && (
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                <span className="text-muted-foreground text-[11px] block">Mounting Style</span>
+                <span className="font-semibold text-foreground text-sm mt-0.5 block">{specs.acType}</span>
+              </div>
+            )}
+            {specs.roomArea && (
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                <span className="text-muted-foreground text-[11px] block">Installed Zone / Room</span>
+                <span className="font-semibold text-foreground text-sm mt-0.5 block">{specs.roomArea}</span>
+              </div>
+            )}
+            {specs.nextServiceDate && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                <span className="text-amber-600 dark:text-amber-400 text-[11px] font-semibold flex items-center gap-1">
+                  <Wrench className="h-3 w-3" />
+                  Next Service Due Date
+                </span>
+                <span className="font-bold text-foreground text-sm mt-0.5 block">{formatDate(specs.nextServiceDate)}</span>
+              </div>
+            )}
+
+            {/* UPS Specs */}
+            {specs.upsCapacity && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                <span className="text-amber-600 dark:text-amber-400 text-[11px] font-medium block">Power Capacity</span>
+                <span className="font-bold text-foreground text-sm mt-0.5 block">{specs.upsCapacity}</span>
+              </div>
+            )}
+            {specs.batteryCount && (
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                <span className="text-muted-foreground text-[11px] block">Battery Configuration</span>
+                <span className="font-semibold text-foreground text-sm mt-0.5 block">{specs.batteryCount}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Notes & Maintenance Details */}
-      {asset.notes && (
+      {cleanNotes && (
         <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 shadow-xs space-y-3">
           <h2 className="text-sm font-bold text-foreground flex items-center gap-2 border-b border-border/50 pb-2">
             <FileText className="h-4 w-4 text-primary" />
             Notes & Maintenance Records
           </h2>
           <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap">
-            {asset.notes}
+            {cleanNotes}
           </p>
         </div>
       )}
     </div>
   );
 }
-

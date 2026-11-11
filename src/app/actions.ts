@@ -799,7 +799,13 @@ export async function createOfficeAsset(formData: FormData) {
   const assignedTo = (formData.get('assignedTo') as string)?.trim() || null;
   const purchaseDateStr = formData.get('purchaseDate') as string;
   const warrantyExpiryStr = formData.get('warrantyExpiry') as string;
-  const notes = (formData.get('notes') as string)?.trim() || null;
+  const rawNotes = (formData.get('notes') as string)?.trim() || '';
+  const specsRaw = (formData.get('specs') as string)?.trim();
+
+  let finalNotes = rawNotes;
+  if (specsRaw) {
+    finalNotes = `[SPECS_JSON:${specsRaw}]\n${rawNotes}`.trim();
+  }
 
   const purchaseDate = purchaseDateStr ? new Date(purchaseDateStr) : null;
   const warrantyExpiry = warrantyExpiryStr ? new Date(warrantyExpiryStr) : null;
@@ -818,7 +824,7 @@ export async function createOfficeAsset(formData: FormData) {
         assignedTo,
         purchaseDate,
         warrantyExpiry,
-        notes,
+        notes: finalNotes || null,
       },
     });
   } catch (error) {
@@ -844,7 +850,14 @@ export async function editOfficeAsset(formData: FormData) {
   const assignedTo = (formData.get('assignedTo') as string)?.trim() || null;
   const purchaseDateStr = formData.get('purchaseDate') as string;
   const warrantyExpiryStr = formData.get('warrantyExpiry') as string;
-  const notes = (formData.get('notes') as string)?.trim() || null;
+  const rawNotes = (formData.get('notes') as string)?.trim() || '';
+  const specsRaw = (formData.get('specs') as string)?.trim();
+
+  let cleanNotes = rawNotes.replace(/\[SPECS_JSON:(.*?)\]\n?/, '').trim();
+  let finalNotes = cleanNotes;
+  if (specsRaw) {
+    finalNotes = `[SPECS_JSON:${specsRaw}]\n${cleanNotes}`.trim();
+  }
 
   const purchaseDate = purchaseDateStr ? new Date(purchaseDateStr) : null;
   const warrantyExpiry = warrantyExpiryStr ? new Date(warrantyExpiryStr) : null;
@@ -864,7 +877,7 @@ export async function editOfficeAsset(formData: FormData) {
         assignedTo,
         purchaseDate,
         warrantyExpiry,
-        notes,
+        notes: finalNotes || null,
       },
     });
   } catch (error) {

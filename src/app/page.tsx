@@ -149,19 +149,10 @@ export default async function Dashboard() {
 
       {/* Office Assets Section */}
       <div className="space-y-5 pt-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold flex items-center gap-2 text-foreground/80">
-            <Boxes className="h-5 w-5 text-primary" />
-            Office Assets
-          </h3>
-          <Link
-            href="/office-assets"
-            prefetch={true}
-            className="text-xs font-semibold text-primary hover:underline"
-          >
-            View all office assets &rarr;
-          </Link>
-        </div>
+        <h3 className="text-lg font-semibold flex items-center gap-2 text-foreground/80">
+          <Boxes className="h-5 w-5 text-primary" />
+          Office Assets
+        </h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <StatCard title="Total Assets" value={totalOfficeAssets} delay={200} icon={Boxes} accent="default" />
           <StatCard title="Monitors" value={officeMonitors} delay={300} icon={Tv} accent="blue" />

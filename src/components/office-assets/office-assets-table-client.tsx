@@ -23,6 +23,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { deleteOfficeAsset } from "@/app/actions";
+import { EditOfficeAssetModal } from "./edit-office-asset-modal";
 
 export interface OfficeAssetItem {
   id: string;
@@ -523,18 +524,13 @@ export function OfficeAssetsTableClient({ assets }: OfficeAssetsTableClientProps
                       <div className="flex items-center justify-end gap-1.5">
                         <Link
                           href={`/office-assets/${asset.id}`}
-                          className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted transition-colors"
+                          prefetch={true}
+                          className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                           title="View Details"
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
-                        <Link
-                          href={`/office-assets/${asset.id}/edit`}
-                          className="text-blue-500 hover:text-blue-700 p-1 rounded-lg hover:bg-blue-500/10 transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Link>
+                        <EditOfficeAssetModal asset={asset} />
                         <form
                           action={async () => {
                             if (confirm(`Are you sure you want to delete ${asset.name} (${asset.assetTag})?`)) {
